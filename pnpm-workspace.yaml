@@ -1,0 +1,11 @@
+packages:
+  - apps/*
+  - packages/*
+
+onlyBuiltDependencies:
+  - '@prisma/engines'
+  - esbuild
+  - electron
+  - prisma
+patchedDependencies:
+  '@material-tailwind/react@3.0.0-beta.24': patches/@material-tailwind__react@3.0.0-beta.24.patch

@@ -1,0 +1,31 @@
+{
+  "name": "@egent/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --conditions=development src/server.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/server.js",
+    "test:smoke": "tsx --test test/smoke.test.ts",
+    "test": "tsx --test --test-timeout=60000 --test-concurrency=1 test/smoke.test.ts test/codex-executor.test.ts test/deepseek-settings.test.ts test/mentions.test.ts test/sqlite.test.ts test/desktop.test.ts test/groups.test.ts test/explicit-agent.test.ts test/participation.test.ts"
+  },
+  "dependencies": {
+    "@egent/database": "workspace:*",
+    "@egent/shared": "workspace:*",
+    "@koa/bodyparser": "6.1.0",
+    "@koa/cors": "5.0.0",
+    "@koa/router": "15.7.0",
+    "dotenv": "17.4.2",
+    "koa": "3.2.1",
+    "smol-toml": "1.8.0",
+    "socket.io": "4.8.3"
+  },
+  "devDependencies": {
+    "@types/koa": "3.0.3",
+    "@types/koa__cors": "5.0.1",
+    "socket.io-client": "4.8.3",
+    "tsx": "4.23.13"
+  }
+}

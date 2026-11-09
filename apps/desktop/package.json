@@ -1,0 +1,6 @@
+{
+  "name": "@egent/desktop",
+  "version": "0.5.5",
+  "private": true,
+  "main": "main.cjs"
+}

@@ -1,0 +1,1111 @@
+diff --git a/dist/chunk-BGJMALSI.js b/dist/chunk-BGJMALSI.js
+index ba4ee13679b467c4d8d2b29c0a6de8ad720829cf..950765c92bfa69904cc45d22832e9e60a8d7a0af 100644
+--- a/dist/chunk-BGJMALSI.js
++++ b/dist/chunk-BGJMALSI.js
+@@ -44,7 +44,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/chunk-BGYX7VND.js b/dist/chunk-BGYX7VND.js
+index 30ca2dcfc37a8d626d86e8acec0080a944276e9d..20cb52fcaf09054464a4771974797423a695b19a 100644
+--- a/dist/chunk-BGYX7VND.js
++++ b/dist/chunk-BGYX7VND.js
+@@ -42,7 +42,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+diff --git a/dist/chunk-RWVEEWUM.js b/dist/chunk-RWVEEWUM.js
+index 6a44c09cc75bb105ecbffddf4844f4b1dac09a42..1dc50a5f3ac561e3b160ed8aeb307928e687fadb 100644
+--- a/dist/chunk-RWVEEWUM.js
++++ b/dist/chunk-RWVEEWUM.js
+@@ -20,7 +20,8 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+   const theme = contextTheme?.checkbox ?? checkboxTheme;
+   const defaultProps = theme?.defaultProps;
+   const innerId = React.useId();
+-  const [checked, setChecked] = React.useState(props?.checked || false);
++  const [innerChecked, setChecked] = React.useState(props?.defaultChecked ?? false);
++  const checked = props?.checked ?? innerChecked;
+   color ??= defaultProps?.color ?? "primary";
+   const styles = twMerge(theme.baseStyle, theme.color[color], className);
+   React.useEffect(() => {
+@@ -50,13 +51,13 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "checkbox",
+-            checked: props?.defaultChecked ? void 0 : props?.checked || checked,
++            type: "checkbox", disabled, defaultChecked: void 0,
++            checked,
+             onChange: (e) => {
+               props?.onChange?.(e);
+-              setChecked((cur) => !cur);
++              if (props.checked === undefined) setChecked(e.target.checked);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         /* @__PURE__ */ jsx(CheckboxContext.Provider, { value: contextValue, children })
+diff --git a/dist/chunk-UBL2QCU4.js b/dist/chunk-UBL2QCU4.js
+index a39a35e14ab818f4123ea9230558d001cf72863f..de76b46e450995a560e374dbc733f6ad9958047d 100644
+--- a/dist/chunk-UBL2QCU4.js
++++ b/dist/chunk-UBL2QCU4.js
+@@ -84,14 +84,14 @@ function RadioItemRoot({ disabled, className, children, value, ...props }, ref)
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "radio",
++            type: "radio", disabled,
+             checked: isChecked,
+             value: mainValue,
+             onChange: (e) => {
+               props?.onChange?.(e);
+               setGlobalValue?.(mainValue);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         children
+diff --git a/dist/components/accordion.cjs b/dist/components/accordion.cjs
+index b72c6c0d66ec339e0a9b2e0fe51bb2a4314a7ca6..77f418e97d092930a76dbb58b63728184281cfdf 100644
+--- a/dist/components/accordion.cjs
++++ b/dist/components/accordion.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/alert.cjs b/dist/components/alert.cjs
+index d500b549e7fce18fa6468cfda3626ed8c22f970d..70ba5baeb451481f9c328e51953b4e51cb35b151 100644
+--- a/dist/components/alert.cjs
++++ b/dist/components/alert.cjs
+@@ -662,7 +662,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -719,7 +719,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/avatar.cjs b/dist/components/avatar.cjs
+index e03d56ac76e2d1128b52c21311054e9ef665e0b4..6df8ca84be28e48ab9c973fc3c947939562c0219 100644
+--- a/dist/components/avatar.cjs
++++ b/dist/components/avatar.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/badge.cjs b/dist/components/badge.cjs
+index 058fd223f924a69c494834d79af794c24a3cac32..2f56997cdb1f26b4450648978fea355be86af185 100644
+--- a/dist/components/badge.cjs
++++ b/dist/components/badge.cjs
+@@ -661,7 +661,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -718,7 +718,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/breadcrumb.cjs b/dist/components/breadcrumb.cjs
+index a82e0678f2018f0845c59a2b2a6b6e18259339f6..35ccf390e248424018503fc44862be73333cd615 100644
+--- a/dist/components/breadcrumb.cjs
++++ b/dist/components/breadcrumb.cjs
+@@ -660,7 +660,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -717,7 +717,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/button-group.cjs b/dist/components/button-group.cjs
+index df6b273c4b7588b7337e6c10704933debdd33ea4..ceae80ae348c30bf9ab2baa61fd170cfc01206a1 100644
+--- a/dist/components/button-group.cjs
++++ b/dist/components/button-group.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/button.cjs b/dist/components/button.cjs
+index 0c05e0e2185392a77adfb71541592c0ae29d51d7..6cfc1b53e2561511d8d33da098b83020bc4d33eb 100644
+--- a/dist/components/button.cjs
++++ b/dist/components/button.cjs
+@@ -659,7 +659,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -716,7 +716,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/card.cjs b/dist/components/card.cjs
+index 3b15fb483f04fead066f3300dcaca906340426b8..297046c5e05d2480c833565e9c64e29d075c9d7c 100644
+--- a/dist/components/card.cjs
++++ b/dist/components/card.cjs
+@@ -661,7 +661,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -718,7 +718,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/checkbox.cjs b/dist/components/checkbox.cjs
+index 41cb0434ec50ddd83ae670da67cc14fda981043f..385477e5a1a4b387376eedc3dfe7732285f7707f 100644
+--- a/dist/components/checkbox.cjs
++++ b/dist/components/checkbox.cjs
+@@ -661,7 +661,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -718,7 +718,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+@@ -1217,7 +1217,8 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+   const theme2 = contextTheme?.checkbox ?? checkboxTheme;
+   const defaultProps = theme2?.defaultProps;
+   const innerId = React2.useId();
+-  const [checked, setChecked] = React2.useState(props?.checked || false);
++  const [innerChecked, setChecked] = React2.useState(props?.defaultChecked ?? false);
++  const checked = props?.checked ?? innerChecked;
+   color ??= defaultProps?.color ?? "primary";
+   const styles = (0, import_tailwind_merge2.twMerge)(theme2.baseStyle, theme2.color[color], className);
+   React2.useEffect(() => {
+@@ -1247,13 +1248,13 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "checkbox",
+-            checked: props?.defaultChecked ? void 0 : props?.checked || checked,
++            type: "checkbox", disabled, defaultChecked: void 0,
++            checked,
+             onChange: (e) => {
+               props?.onChange?.(e);
+-              setChecked((cur) => !cur);
++              if (props.checked === undefined) setChecked(e.target.checked);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(CheckboxContext.Provider, { value: contextValue, children })
+diff --git a/dist/components/chip.cjs b/dist/components/chip.cjs
+index 5014dc73eb4c166a740bb249d2f5ecf7b6b3071b..58126b54522c75778c803d2892cdfaa2f85df184 100644
+--- a/dist/components/chip.cjs
++++ b/dist/components/chip.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/collapse.cjs b/dist/components/collapse.cjs
+index bbe54c9039b898b0c40015dae5f8c1eaaf51b6bb..9a51ff2910f6d7501d880297b967769acff9fbf2 100644
+--- a/dist/components/collapse.cjs
++++ b/dist/components/collapse.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/dialog.cjs b/dist/components/dialog.cjs
+index f060b592fc6a224e5f5d2f46c32342381dbf6f8f..7ebe499b375081d5f7f0bef2675e9386d77885de 100644
+--- a/dist/components/dialog.cjs
++++ b/dist/components/dialog.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/drawer.cjs b/dist/components/drawer.cjs
+index fd1fb06253a5847733984fbe1884c28fd2e5e601..53b4acf69138559d0816a3dca7c488ef3440e4c1 100644
+--- a/dist/components/drawer.cjs
++++ b/dist/components/drawer.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/icon-button.cjs b/dist/components/icon-button.cjs
+index 99232a2331c905865c4a1365696e0cc7536e5f5c..bbe37631431603c952ee52715b7f48fca9a0751f 100644
+--- a/dist/components/icon-button.cjs
++++ b/dist/components/icon-button.cjs
+@@ -659,7 +659,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -716,7 +716,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/index.cjs b/dist/components/index.cjs
+index f796ca5b72102dc2672b4452a59d1c7c5ac2383f..3dbaa62a8db0cc00be7abbcfa5645478af285ec1 100644
+--- a/dist/components/index.cjs
++++ b/dist/components/index.cjs
+@@ -775,7 +775,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -832,7 +832,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+@@ -1753,7 +1753,8 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+   const theme2 = contextTheme?.checkbox ?? checkboxTheme;
+   const defaultProps = theme2?.defaultProps;
+   const innerId = React8.useId();
+-  const [checked, setChecked] = React8.useState(props?.checked || false);
++  const [innerChecked, setChecked] = React8.useState(props?.defaultChecked ?? false);
++  const checked = props?.checked ?? innerChecked;
+   color ??= defaultProps?.color ?? "primary";
+   const styles = (0, import_tailwind_merge8.twMerge)(theme2.baseStyle, theme2.color[color], className);
+   React8.useEffect(() => {
+@@ -1783,13 +1784,13 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "checkbox",
+-            checked: props?.defaultChecked ? void 0 : props?.checked || checked,
++            type: "checkbox", disabled, defaultChecked: void 0,
++            checked,
+             onChange: (e) => {
+               props?.onChange?.(e);
+-              setChecked((cur) => !cur);
++              if (props.checked === undefined) setChecked(e.target.checked);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(CheckboxContext.Provider, { value: contextValue, children })
+@@ -3279,14 +3280,14 @@ function RadioItemRoot({ disabled, className, children, value, ...props }, ref)
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "radio",
++            type: "radio", disabled,
+             checked: isChecked,
+             value: mainValue,
+             onChange: (e) => {
+               props?.onChange?.(e);
+               setGlobalValue?.(mainValue);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         children
+diff --git a/dist/components/input.cjs b/dist/components/input.cjs
+index b607cba5e11f0cd3250acae4bb1f3d9662d17aa6..2a562cd32b9319aabeedb74bbea166e35df27424 100644
+--- a/dist/components/input.cjs
++++ b/dist/components/input.cjs
+@@ -661,7 +661,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -718,7 +718,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/list.cjs b/dist/components/list.cjs
+index a711b2ab2b7ddd46751c2791698bfec4e09c1489..9234922d04c1bddb14eb3fd1e500d222cc922802 100644
+--- a/dist/components/list.cjs
++++ b/dist/components/list.cjs
+@@ -663,7 +663,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -720,7 +720,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/menu.cjs b/dist/components/menu.cjs
+index d3f6b053e8f9d0704177c61354c77cf97c4330cb..a6dd946828d91d06a6b4c038e3e10389cd6c423a 100644
+--- a/dist/components/menu.cjs
++++ b/dist/components/menu.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/navbar.cjs b/dist/components/navbar.cjs
+index 0b889c947edb8cdd8f647a6d19439780efd57064..3842b53609094cac2c6ae07ec08786e9ed63988a 100644
+--- a/dist/components/navbar.cjs
++++ b/dist/components/navbar.cjs
+@@ -657,7 +657,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -714,7 +714,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/popover.cjs b/dist/components/popover.cjs
+index 841b1f921da9cb068d401c9798fa597fef5dacce..11b112c32834a37f805a90e58baa90c5af92aa07 100644
+--- a/dist/components/popover.cjs
++++ b/dist/components/popover.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/progress.cjs b/dist/components/progress.cjs
+index b7fecb5d1a88f9e4ba43bb4f911851c497b1c918..36aae8f687604bf72bc2f41551f2c181a14477b5 100644
+--- a/dist/components/progress.cjs
++++ b/dist/components/progress.cjs
+@@ -660,7 +660,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -717,7 +717,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/radio.cjs b/dist/components/radio.cjs
+index 157c70ab6c4e5b2c3625f84bd3ad39767e8fc6ed..4185e04e16839cc217b5f7888d8c5996d63ebe9b 100644
+--- a/dist/components/radio.cjs
++++ b/dist/components/radio.cjs
+@@ -662,7 +662,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -719,7 +719,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+@@ -1281,14 +1281,14 @@ function RadioItemRoot({ disabled, className, children, value, ...props }, ref)
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "radio",
++            type: "radio", disabled,
+             checked: isChecked,
+             value: mainValue,
+             onChange: (e) => {
+               props?.onChange?.(e);
+               setGlobalValue?.(mainValue);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         children
+diff --git a/dist/components/rating.cjs b/dist/components/rating.cjs
+index 5748ac3a49a791f354614f7c7f5e380b386f6ba0..f99e4f7c0832f80b4a7b1c155b94ff9b65440868 100644
+--- a/dist/components/rating.cjs
++++ b/dist/components/rating.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/select.cjs b/dist/components/select.cjs
+index f344c44059984099a2cd99bb1afef237ef4e9bcc..1bc4b79848c404e61df325b2ba7fc45452f31439 100644
+--- a/dist/components/select.cjs
++++ b/dist/components/select.cjs
+@@ -663,7 +663,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -720,7 +720,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/slider.cjs b/dist/components/slider.cjs
+index eb909d95147916ffb2bad9832db717b0b0a7f350..04d1e37670a95ccf470cd27425b8d581b74c42b1 100644
+--- a/dist/components/slider.cjs
++++ b/dist/components/slider.cjs
+@@ -661,7 +661,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -718,7 +718,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/spinner.cjs b/dist/components/spinner.cjs
+index a8cbfc7f3f21db5499bef424f9177c181603b8ec..63a8be524faf9a8b255e39ec1ffc7f20edfe47e2 100644
+--- a/dist/components/spinner.cjs
++++ b/dist/components/spinner.cjs
+@@ -657,7 +657,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -714,7 +714,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/switch.cjs b/dist/components/switch.cjs
+index 1b55e54ae589b1cd90d7f297685401740d33303f..893d4cd2efe9a0560f8de6df3033df3e17a3ce43 100644
+--- a/dist/components/switch.cjs
++++ b/dist/components/switch.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/tabs.cjs b/dist/components/tabs.cjs
+index d9f5145608c2d08dde0bdf23e9ea3c457e4f3272..a26a30649ee1b7c807d043a7b013000ac25328f5 100644
+--- a/dist/components/tabs.cjs
++++ b/dist/components/tabs.cjs
+@@ -662,7 +662,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -719,7 +719,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/textarea.cjs b/dist/components/textarea.cjs
+index cb0bc338d68241e00678858ece355ce61f660b7e..0f7c11852eb8b9e466237f0ca555e4065f5bdf58 100644
+--- a/dist/components/textarea.cjs
++++ b/dist/components/textarea.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/timeline.cjs b/dist/components/timeline.cjs
+index 4083b90edaaf39691086f32e9809f559a5b62387..ff97e9afe5659217f55d12760499529a97efc21a 100644
+--- a/dist/components/timeline.cjs
++++ b/dist/components/timeline.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/tooltip.cjs b/dist/components/tooltip.cjs
+index 3a061f4b947e30082f1667216794e6ced134a4b0..e005b5c39cafff7e82649277c267c00cf647d5ec 100644
+--- a/dist/components/tooltip.cjs
++++ b/dist/components/tooltip.cjs
+@@ -664,7 +664,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -721,7 +721,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/components/typography.cjs b/dist/components/typography.cjs
+index 2660dbf5c7516e678263b12a41fd70187074811e..5cf7a1797e151705686d9e2e54315a56f9fe0355 100644
+--- a/dist/components/typography.cjs
++++ b/dist/components/typography.cjs
+@@ -658,7 +658,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -715,7 +715,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/context/index.cjs b/dist/context/index.cjs
+index a82e9664d0e77aec8248f89fe1c3f32b60202e3e..65ae3319ea080d8d7b11c4ff8c6fcfa127a553ed 100644
+--- a/dist/context/index.cjs
++++ b/dist/context/index.cjs
+@@ -655,7 +655,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -712,7 +712,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/index.cjs b/dist/index.cjs
+index e357648b10cd4e85137cede2a9cfe4da7a2344b1..c33419397301e8b42e4792a84a2b0f859edc6316 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -1160,7 +1160,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -1217,7 +1217,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+@@ -2455,7 +2455,8 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+   const theme2 = contextTheme?.checkbox ?? checkboxTheme;
+   const defaultProps = theme2?.defaultProps;
+   const innerId = React8.useId();
+-  const [checked, setChecked] = React8.useState(props?.checked || false);
++  const [innerChecked, setChecked] = React8.useState(props?.defaultChecked ?? false);
++  const checked = props?.checked ?? innerChecked;
+   color ??= defaultProps?.color ?? "primary";
+   const styles = (0, import_tailwind_merge8.twMerge)(theme2.baseStyle, theme2.color[color], className);
+   React8.useEffect(() => {
+@@ -2485,13 +2486,13 @@ function CheckboxRootBase({ color, disabled, className, children, ...props }, re
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "checkbox",
+-            checked: props?.defaultChecked ? void 0 : props?.checked || checked,
++            type: "checkbox", disabled, defaultChecked: void 0,
++            checked,
+             onChange: (e) => {
+               props?.onChange?.(e);
+-              setChecked((cur) => !cur);
++              if (props.checked === undefined) setChecked(e.target.checked);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(CheckboxContext.Provider, { value: contextValue, children })
+@@ -3981,14 +3982,14 @@ function RadioItemRoot({ disabled, className, children, value, ...props }, ref)
+           {
+             ...props,
+             id: props?.id || innerId,
+-            type: "radio",
++            type: "radio", disabled,
+             checked: isChecked,
+             value: mainValue,
+             onChange: (e) => {
+               props?.onChange?.(e);
+               setGlobalValue?.(mainValue);
+             },
+-            style: { display: "none" }
++            style: { position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }
+           }
+         ),
+         children
+diff --git a/dist/theme/index.cjs b/dist/theme/index.cjs
+index b313e9d442b44876b519d54dac0317873c474a7f..99efe16c0fcc5f6c578d07bc752c80c624eb443e 100644
+--- a/dist/theme/index.cjs
++++ b/dist/theme/index.cjs
+@@ -727,7 +727,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -784,7 +784,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/theme/rating.cjs b/dist/theme/rating.cjs
+index b32824c3b088d1d1a4c6052121ece59eb23dd6a6..1952d820d0977585bd57f1463c1b875b7afd6c57 100644
+--- a/dist/theme/rating.cjs
++++ b/dist/theme/rating.cjs
+@@ -66,7 +66,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+diff --git a/dist/theme/select.cjs b/dist/theme/select.cjs
+index 0d91ad6a629ef89c29e639f3892c4d8ed93fce10..c638daa5c9bcda749cb2322b094a98616cfaffa9 100644
+--- a/dist/theme/select.cjs
++++ b/dist/theme/select.cjs
+@@ -71,7 +71,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/dist/theme/theme.cjs b/dist/theme/theme.cjs
+index 7bf0a1e65f702d0b1f7ab48c681c5137ab7a9d70..45393900e4c9790b22f9b12864b7502d066535f5 100644
+--- a/dist/theme/theme.cjs
++++ b/dist/theme/theme.cjs
+@@ -642,7 +642,7 @@ var ratingTheme = {
+     ),
+     readonly: false
+   },
+-  baseStyle: "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++  baseStyle: "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+@@ -699,7 +699,7 @@ var selectTriggerTheme = {
+       }
+     )
+   },
+-  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++  baseStyle: "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",
+diff --git a/src/components/checkbox.tsx b/src/components/checkbox.tsx
+index 4972deb4edc4ceb016e6c8d5fc3d7fdb0718b8d4..62e203a091ef92368086441dc766997007cccf6d 100644
+--- a/src/components/checkbox.tsx
++++ b/src/components/checkbox.tsx
+@@ -50,7 +50,8 @@ function CheckboxRootBase<T extends React.ElementType = "input">(
+   const defaultProps = theme?.defaultProps;
+ 
+   const innerId = React.useId();
+-  const [checked, setChecked] = React.useState(props?.checked || false);
++  const [innerChecked, setChecked] = React.useState(props?.defaultChecked ?? false);
++  const checked = props?.checked ?? innerChecked;
+ 
+   color ??= (defaultProps?.color as CheckboxProps["color"]) ?? "primary";
+ 
+@@ -82,13 +83,13 @@ function CheckboxRootBase<T extends React.ElementType = "input">(
+       <input
+         {...props}
+         id={props?.id || innerId}
+-        type="checkbox"
+-        checked={props?.defaultChecked ? undefined : props?.checked || checked}
++        type="checkbox" disabled={disabled} defaultChecked={undefined}
++        checked={checked}
+         onChange={(e) => {
+           props?.onChange?.(e);
+-          setChecked((cur) => !cur);
++          if (props.checked === undefined) setChecked(e.target.checked);
+         }}
+-        style={{ display: "none" }}
++        style={{ position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }}
+       />
+       <CheckboxContext.Provider value={contextValue}>
+         {children}
+diff --git a/src/components/radio.tsx b/src/components/radio.tsx
+index 1066ec2033ff460559c5252a0b5bec461d18d5c7..5eafaeea9404531845e2eefa167e179785c20580 100644
+--- a/src/components/radio.tsx
++++ b/src/components/radio.tsx
+@@ -139,14 +139,14 @@ function RadioItemRoot<T extends React.ElementType = "input">(
+       <input
+         {...props}
+         id={props?.id || innerId}
+-        type="radio"
++        type="radio" disabled={disabled}
+         checked={isChecked}
+         value={mainValue}
+         onChange={(e) => {
+           props?.onChange?.(e);
+           setGlobalValue?.(mainValue);
+         }}
+-        style={{ display: "none" }}
++        style={{ position: "absolute", inset: 0, margin: 0, width: "100%", height: "100%", opacity: 0, cursor: "inherit" }}
+       />
+       {children}
+     </label>
+diff --git a/src/theme/rating.tsx b/src/theme/rating.tsx
+index 4f3ac2e37f023a4361ffae4cb949bc1d70a57a65..a355773a98d09e54ea9b7108b2f910c6f93b3a15 100644
+--- a/src/theme/rating.tsx
++++ b/src/theme/rating.tsx
+@@ -39,7 +39,7 @@ export const ratingTheme = {
+     readonly: false,
+   },
+   baseStyle:
+-    "inline-flex items-center [&_data-slot=icon]:w-5 [&_data-slot=icon]:h-5 [&_data-slot=icon]:text-inherit [&_data-slot=icon]:cursor-pointer",
++    "inline-flex items-center [&_[data-slot=icon]]:w-5 [&_[data-slot=icon]]:h-5 [&_[data-slot=icon]]:text-inherit [&_[data-slot=icon]]:cursor-pointer",
+   color: {
+     primary: "text-primary",
+     secondary: "text-secondary",
+diff --git a/src/theme/select.tsx b/src/theme/select.tsx
+index b8580021b46ea4eb01ea28c8226d6548e0a17356..a169ea348e8edfc94225121f04b0e8ba59599b4e 100644
+--- a/src/theme/select.tsx
++++ b/src/theme/select.tsx
+@@ -43,7 +43,7 @@ export const selectTriggerTheme = {
+     ),
+   },
+   baseStyle:
+-    "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_data-slot=placeholder]:text-foreground/60",
++    "flex items-center gap-4 justify-between h-max w-full outline-none focus:outline-none text-foreground bg-transparent ring-transparent border border-surface transition-all duration-300 ease-in disabled:opacity-50 disabled:pointer-events-none data-[error=true]:border-error data-[success=true]:border-success select-none text-start data-[shape=pill]:rounded-full [&_[data-slot=placeholder]]:text-foreground/60",
+   size: {
+     sm: "text-sm rounded-md py-1.5 px-2 ring shadow-sm",
+     md: "text-sm rounded-md py-2 px-2.5 ring shadow-sm",

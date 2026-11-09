@@ -1,0 +1,56 @@
+html,
+body {
+  margin: 0;
+  background: #fff;
+}
+.startup-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: #fff;
+  color: #65705e;
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+.startup-logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+.startup-caption {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  background: linear-gradient(
+    105deg,
+    #65705e 35%,
+    #a8c5ac 46%,
+    #d3e8dd 50%,
+    #a8c5ac 54%,
+    #65705e 65%
+  );
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: startup-shimmer 1.2s linear infinite;
+}
+@keyframes startup-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .startup-caption {
+    animation: none;
+    background: none;
+    color: #65705e;
+  }
+}

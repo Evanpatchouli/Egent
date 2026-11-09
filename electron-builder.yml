@@ -1,0 +1,14 @@
+appId: local.egent.desktop
+productName: Egent
+electronVersion: 44.3.0
+directories:
+  app: apps/desktop/build/app
+  output: release/${version}
+asar: false
+npmRebuild: false
+win:
+  target: portable
+  icon: apps/desktop/assets/icon.ico
+  signAndEditExecutable: true
+  signExecutable: false
+artifactName: Egent-${version}-${arch}.${ext}

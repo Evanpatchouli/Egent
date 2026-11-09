@@ -1,0 +1,181 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  OWNER
+  COLLEAGUE
+}
+
+model User {
+  id             String                    @id @default(uuid())
+  identifier     String                    @unique
+  name           String
+  role           Role
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  conversations  Conversation[]            @relation("Creator")
+  participations ConversationParticipant[]
+  messages       Message[]
+}
+
+model AgentModelSetting {
+  scope    String @id
+  provider String
+  model    String?
+  effort   String?
+}
+
+model HiddenConversation {
+  id String @id
+}
+
+model MentionAlert {
+  messageId      String   @id
+  conversationId String
+  senderName     String
+  createdAt      DateTime
+  read           Boolean  @default(false)
+
+  @@index([conversationId, read, createdAt])
+}
+
+model DevicePreference {
+  id String @id
+  systemNotifications Boolean @default(true)
+}
+
+model ProjectSetting {
+  projectPath      String   @id
+  colleagueVisible Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+enum SenderType {
+  USER
+  AGENT
+  SYSTEM
+}
+
+model Conversation {
+  id              String                    @id @default(uuid())
+  projectPath     String
+  title           String                    @default("新聊天")
+  autoAgentEnabled Boolean                  @default(true)
+  autoAgentPendingAt DateTime?
+  autoAgentCursor DateTime?
+  autoAgentLastReplyAt DateTime?
+  autoAgentRevision Int                      @default(0)
+  autoAgentError String?
+  createdByUserId String
+  createdBy       User                      @relation("Creator", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  participants    ConversationParticipant[]
+  messages        Message[]
+  agentTasks      AgentTask[]
+
+  @@index([updatedAt, id])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime     @default(now())
+  historyAfter   DateTime?
+  lastReadAt     DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user           User         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([conversationId, userId])
+  @@index([userId, conversationId])
+}
+
+model Message {
+  id              String       @id @default(uuid())
+  conversationId  String
+  senderType      SenderType
+  senderUserId    String?
+  clientMessageId String?
+  content         String
+  createdAt       DateTime     @default(now())
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sender          User?        @relation(fields: [senderUserId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  triggeredTask   AgentTask?   @relation("Trigger")
+  agentTaskId     String?
+  agentTask       AgentTask?   @relation("TaskMessages", fields: [agentTaskId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([conversationId, senderUserId, clientMessageId])
+  @@index([conversationId, createdAt, id])
+  @@index([agentTaskId, createdAt])
+}
+
+enum AgentTaskType {
+  DEVELOPMENT_SIMPLE
+  DEVELOPMENT_COMPLEX
+  QUESTION
+}
+
+enum AgentTaskStatus {
+  PENDING
+  QUEUED
+  ANALYZING
+  WAITING_USER_CONFIRMATION
+  WAITING_OWNER_CONFIRMATION
+  IMPLEMENTING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model AgentTask {
+  id               String          @id @default(uuid())
+  conversationId   String
+  conversation     Conversation    @relation(fields: [conversationId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  triggerMessageId String          @unique
+  triggerMessage   Message         @relation("Trigger", fields: [triggerMessageId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  messages         Message[]       @relation("TaskMessages")
+  type             AgentTaskType?
+  intent           String          @default("TASK")
+  status           AgentTaskStatus @default(PENDING)
+  workspacePath    String
+  createdAt        DateTime        @default(now())
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  updatedAt        DateTime        @updatedAt
+  processedAt      DateTime?
+  planMessageAt    DateTime?
+  planVersion      Int             @default(0)
+  revision         Int             @default(0)
+  errorMessage     String?
+  metadata         Json            @default("{}")
+
+  @@index([status, createdAt])
+  @@index([conversationId, createdAt])
+}
+
+model Peer {
+  deviceId String @id
+  publicKey String
+  nickname String
+  address String
+  updatedAt DateTime @updatedAt
+}
+
+model RemoteSnapshot {
+  peerId String
+  resource String
+  data Json
+  updatedAt DateTime @updatedAt
+  @@id([peerId, resource])
+}

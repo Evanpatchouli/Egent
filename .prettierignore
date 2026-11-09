@@ -1,0 +1,15 @@
+node_modules
+dist
+pnpm-lock.yaml
+**/generated
+.env
+.env.*
+!.env.example
+.pnpm-*
+.cache
+.tmp
+output
+.playwright-cli
+apps/desktop/build
+release
+.local-data

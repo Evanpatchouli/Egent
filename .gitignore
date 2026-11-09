@@ -1,0 +1,36 @@
+# Dependencies and package-manager caches
+node_modules/
+.pnpm-store/
+.pnpm-cache/
+.pnpm-state/
+
+# Build and packaging outputs
+dist/
+*.tsbuildinfo
+/apps/desktop/build/
+/packages/database/src/generated/
+/release/
+
+# Local configuration and Egent runtime data
+.env
+.env.*
+!.env.example
+.local-data/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+device.json
+runtime.json
+deepseek-settings.json
+*.log
+
+# Temporary workspaces and test output
+.cache/
+.tmp/
+output/
+.codex-task-*/
+.playwright-cli/
+playwright-report/
+test-results/
+coverage/
