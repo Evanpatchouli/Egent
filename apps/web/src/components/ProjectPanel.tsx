@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Checkbox } from '@material-tailwind/react';
+import { Button, Checkbox, Input } from '@material-tailwind/react';
 import type { ProjectInfo, UserInfo } from '@egent/shared';
 import { request } from '../api/client';
 
@@ -9,6 +9,12 @@ export function ProjectPanel({ user }: { user: UserInfo }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const query = search.trim().toLowerCase();
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.name.toLowerCase().includes(query) || project.path.toLowerCase().includes(query),
+  );
   const refresh = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -56,13 +62,19 @@ export function ProjectPanel({ user }: { user: UserInfo }) {
       </Button>
       {loading && <p role="status">读取项目中…</p>}
       <p>勾选后对所有同事可见，修改立即保存。</p>
+      <Input
+        aria-label="搜索项目"
+        placeholder="搜索项目名称或路径"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+      />
       {error && (
         <p role="alert" className="text-red-700">
           {error}
         </p>
       )}
       <div className="max-h-96 space-y-4 overflow-auto">
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <div key={project.path} className="flex items-start gap-3">
             <Checkbox
               className="egent-control mt-1 shrink-0"
@@ -83,6 +95,7 @@ export function ProjectPanel({ user }: { user: UserInfo }) {
         ))}
       </div>
       {!loading && projects.length === 0 && <p>暂无项目</p>}
+      {!loading && projects.length > 0 && filteredProjects.length === 0 && <p>没有匹配的项目</p>}
     </section>
   );
 }
