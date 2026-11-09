@@ -5,6 +5,7 @@ import { request } from '../../api/client';
 import { useChatConnection } from '../../hooks/useChatConnection';
 import { useOutbox } from '../../hooks/useOutbox';
 import { SettingsPage } from '../SettingsPage';
+import { TitleBarMenu } from '../TitleBarMenu';
 import { ConversationSidebar } from './ConversationSidebar';
 import { ConnectDialog } from '../ConnectDialog';
 import { ColleagueList } from '../ColleagueList';
@@ -135,6 +136,7 @@ export function ChatShell({
             {user.name}
             <small>{user.role === 'OWNER' ? 'Owner' : '同事'}</small>
           </span>
+          <TitleBarMenu />
         </div>
       </header>
       <div className="chat-layout" hidden={settings}>

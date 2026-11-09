@@ -20,6 +20,14 @@ body {
   height: 96px;
   object-fit: contain;
 }
+.startup-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: env(titlebar-area-width, 100%);
+  height: env(titlebar-area-height, 0px);
+  app-region: drag;
+}
 .startup-caption {
   margin: 0;
   font-size: 16px;

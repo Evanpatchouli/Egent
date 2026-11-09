@@ -56,7 +56,7 @@ app.use(async (ctx) => {
     ctx.type = path.extname(target);
     ctx.set(
       'Content-Security-Policy',
-      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:* ws://localhost:*",
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws://127.0.0.1:* ws://localhost:* https://api.github.com/repos/Evanpatchouli/Egent/releases/latest",
     );
     ctx.body = await readFile(target);
   } catch {

@@ -5,6 +5,7 @@ const {
   dialog,
   Tray,
   Menu,
+  shell,
   Notification,
 } = require('electron');
 const path = require('node:path');
@@ -63,6 +64,7 @@ else {
       );
       tray.on('double-click', showWindow);
       let runtimeUrl = null;
+      Menu.setApplicationMenu(null);
       window = new BrowserWindow({
         width: 1280,
         height: 860,
@@ -71,7 +73,8 @@ else {
         title: 'Egent',
         backgroundColor: '#ffffff',
         icon: path.join(root, 'icon.ico'),
-        autoHideMenuBar: true,
+        titleBarStyle: 'hidden',
+        titleBarOverlay: { color: '#ffffff', symbolColor: '#2b2b28', height: 48 },
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,
@@ -79,7 +82,14 @@ else {
           backgroundThrottling: false,
         },
       });
-      window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+      window.webContents.setWindowOpenHandler(({ url }) => {
+        if (url === 'https://github.com/Evanpatchouli/Egent/releases/latest') {
+          void shell
+            .openExternal(url)
+            .catch(() => dialog.showErrorBox('打开失败', '无法打开系统浏览器。'));
+        }
+        return { action: 'deny' };
+      });
       window.webContents.on('will-navigate', (event, url) => {
         if (!runtimeUrl || !url.startsWith(runtimeUrl + '/')) event.preventDefault();
       });

@@ -41,7 +41,9 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
       this.visible = true;
       this.minimized = false;
       this.webContents = new EventEmitter();
-      this.webContents.setWindowOpenHandler = () => {};
+      this.webContents.setWindowOpenHandler = (handler) => {
+        this.openWindow = handler;
+      };
       this.webContents.session = { setPermissionRequestHandler() {} };
       windows.push(this);
     }
@@ -104,10 +106,12 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
     BrowserWindow: Window,
     Tray,
     Notification,
-    Menu: { buildFromTemplate: (items) => items },
+    Menu: { buildFromTemplate: (items) => items, setApplicationMenu() {} },
+    shell: { openExternal: async (url) => openedUrls.push(url) },
     utilityProcess: { fork: () => backend },
     dialog: { showErrorBox: () => assert.fail('unexpected startup error') },
   };
+  const openedUrls = [];
   runInNewContext(readFileSync(path.join(__dirname, '../main.cjs'), 'utf8'), {
     require: (name) =>
       name === 'electron'
@@ -129,6 +133,11 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
   await new Promise((r) => setImmediate(r));
   assert.equal(windows.length, 1, 'startup window exists before the backend is ready');
   assert.equal(windows[0].options.backgroundColor, '#ffffff');
+  const releasePage = 'https://github.com/Evanpatchouli/Egent/releases/latest';
+  for (const url of [releasePage + '/other', releasePage]) {
+    assert.equal(windows[0].openWindow({ url }).action, 'deny');
+  }
+  assert.deepEqual(openedUrls, [releasePage]);
   assert.equal(path.basename(windows[0].file), 'splash.html');
   assert.equal(windows[0].urls.length, 0);
   windows[0].emit('close', { preventDefault() {} });

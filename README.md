@@ -4,7 +4,9 @@
 
 ## 下载与使用
 
-Windows x64 便携启动器位于 `release/<版本>/Egent-<版本>-x64.exe`。
+从 [GitHub Releases](https://github.com/Evanpatchouli/Egent/releases/latest) 下载 Windows x64 便携启动器。本地构建产物位于 `release/<版本>/Egent-<版本>-x64.exe`。
+
+点击标题栏的“更多”（···）→“关于”可查看当前版本。“检查更新”会查询 GitHub 上的最新正式发行版。发现新版本时，点击“查看发行版”即可在系统浏览器中打开下载页。
 
 1. 每个人启动自己的 Egent。
 2. 第一次输入“你是谁”——这只是昵称。身份由后端读取设备标识自动生成。

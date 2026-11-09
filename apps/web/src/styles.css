@@ -20,7 +20,10 @@ body {
   font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
 }
 .app-header {
-  height: 66px;
+  height: env(titlebar-area-height, 66px);
+  width: env(titlebar-area-width, 100%);
+  app-region: drag;
+  user-select: none;
   flex-shrink: 0;
   border-bottom: 1px solid #e9e8e3;
   display: flex;
@@ -32,6 +35,17 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
+}
+.app-header button {
+  app-region: no-drag;
+}
+.app-header .titlebar-more {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
 }
 .wordmark {
   font-size: 23px;
@@ -577,7 +591,7 @@ body {
 }
 @media (max-width: 760px) {
   .app-header {
-    height: 58px;
+    height: env(titlebar-area-height, 58px);
     padding: 0 16px;
   }
   .mobile-menu {
@@ -587,7 +601,7 @@ body {
   .chat-sidebar {
     display: none;
     position: absolute;
-    top: 58px;
+    top: env(titlebar-area-height, 58px);
     bottom: 0;
     z-index: 10;
     width: min(280px, 85vw);
