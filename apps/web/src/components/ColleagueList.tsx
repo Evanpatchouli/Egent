@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Avatar, Button, Dialog, Input, Menu } from '@material-tailwind/react';
 import { request } from '../api/client';
 import type { PeerContact } from './InvitePeople';
@@ -160,24 +160,27 @@ export function ColleagueList() {
   );
 }
 
-/** Material Tailwind manages keyboard focus, dismissal and portal placement for the context menu. */
 function ColleagueMenu({ peer, onReconnect }: { peer: PeerContact; onReconnect: () => void }) {
-  const [open, setOpen] = useState(false);
+  const row = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   return (
-    <Menu open={open} onOpenChange={setOpen} placement="bottom-start">
-      <Menu.Trigger
-        as={Button}
+    <>
+      <Button
+        ref={row}
         ripple
         variant="ghost"
         className="colleague-row"
+        aria-haspopup="menu"
+        aria-expanded={!!position}
         onContextMenu={(e: React.MouseEvent) => {
           e.preventDefault();
-          setOpen(true);
+          setPosition({ left: e.clientX, top: e.clientY });
         }}
         onKeyDown={(e: React.KeyboardEvent) => {
           if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
             e.preventDefault();
-            setOpen(true);
+            const bounds = e.currentTarget.getBoundingClientRect();
+            setPosition({ left: bounds.left, top: bounds.bottom });
           }
         }}
       >
@@ -186,12 +189,29 @@ function ColleagueMenu({ peer, onReconnect }: { peer: PeerContact; onReconnect: 
         </Avatar>
         <span>{peer.nickname}</span>
         <small className={peer.online ? 'peer-online' : ''}>{peer.online ? '在线' : '离线'}</small>
-      </Menu.Trigger>
-      <Menu.Content aria-label={peer.nickname + '的操作'}>
-        <Menu.Item ripple onClick={onReconnect}>
-          重新连接
-        </Menu.Item>
-      </Menu.Content>
-    </Menu>
+      </Button>
+      {position && (
+        <Menu open onOpenChange={() => setPosition(null)} placement="bottom-start" offset={0}>
+          <Menu.Trigger
+            as="span"
+            aria-hidden="true"
+            className="pointer-events-none fixed size-0"
+            style={position}
+          />
+          <Menu.Content
+            aria-label={peer.nickname + '的操作'}
+            returnFocus={false}
+            onKeyDownCapture={(event) => {
+              if (event.key === 'Escape') row.current?.focus();
+            }}
+            className="min-w-24 p-1"
+          >
+            <Menu.Item ripple onClick={onReconnect}>
+              重新连接
+            </Menu.Item>
+          </Menu.Content>
+        </Menu>
+      )}
+    </>
   );
 }
