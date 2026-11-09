@@ -71,7 +71,7 @@ export function TitleBarMenu() {
 
   return (
     <>
-      <Menu placement="bottom-end">
+      <Menu placement="bottom-start">
         <Menu.Trigger
           as={Button}
           ripple

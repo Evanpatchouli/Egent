@@ -1,5 +1,5 @@
 import { Button, Menu } from '@material-tailwind/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ConversationInfo } from '@egent/shared';
 /** Only conversation-bearing projects appear, including retained historical project paths. */
 export function ConversationSidebar({
@@ -114,60 +114,81 @@ function ConversationMenu({
   onSelect: () => void;
   onRemove: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const row = useRef<HTMLButtonElement>(null);
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   return (
-    <Menu
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) setOpen(false);
-      }}
-      placement="bottom-start"
-    >
-      <div
-        onClickCapture={onSelect}
-        onContextMenuCapture={(event: React.MouseEvent) => {
+    <>
+      <Button
+        ref={row}
+        variant="ghost"
+        ripple
+        className={'conversation-link ' + (active ? 'selected' : '')}
+        aria-current={active ? 'page' : undefined}
+        aria-haspopup="menu"
+        aria-expanded={!!position}
+        title={item.title}
+        onClick={onSelect}
+        onContextMenu={(event) => {
           event.preventDefault();
-          setOpen(true);
+          setPosition({ left: event.clientX, top: event.clientY });
         }}
-        onKeyDownCapture={(event: React.KeyboardEvent) => {
+        onKeyDown={(event) => {
           if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
             event.preventDefault();
-            event.stopPropagation();
-            setOpen(true);
+            const bounds = event.currentTarget.getBoundingClientRect();
+            setPosition({ left: bounds.left, top: bounds.bottom });
           }
         }}
       >
-        <Menu.Trigger
-          as={Button}
-          variant="ghost"
-          ripple
-          className={'conversation-link ' + (active ? 'selected' : '')}
-          aria-current={active ? 'page' : undefined}
-          title={item.title}
-        >
-          <span className="conversation-copy">
-            <span className="conversation-title">{item.title}</span>
-            {item.mentionAlert && (
-              <span
-                className="conversation-mention"
-                title={`${item.mentionAlert.senderName} @ 了你`}
-              >
-                {item.mentionAlert.senderName} @ 了你
-              </span>
-            )}
-          </span>
-          {item.unreadCount > 0 && (
-            <span className="unread" aria-label={item.unreadCount + ' 条未读'}>
-              {item.unreadCount > 99 ? '99+' : item.unreadCount}
+        <span className="conversation-copy">
+          <span className="conversation-title">{item.title}</span>
+          {item.mentionAlert && (
+            <span className="conversation-mention" title={`${item.mentionAlert.senderName} @ 了你`}>
+              {item.mentionAlert.senderName} @ 了你
             </span>
           )}
-        </Menu.Trigger>
-      </div>
-      <Menu.Content aria-label={item.title + '的操作'}>
-        <Menu.Item ripple onClick={onRemove}>
-          从本机历史移除
-        </Menu.Item>
-      </Menu.Content>
-    </Menu>
+        </span>
+        {item.unreadCount > 0 && (
+          <span className="unread" aria-label={item.unreadCount + ' 条未读'}>
+            {item.unreadCount > 99 ? '99+' : item.unreadCount}
+          </span>
+        )}
+      </Button>
+      {position && (
+        <Menu open onOpenChange={() => setPosition(null)} placement="bottom-start" offset={0}>
+          <Menu.Trigger
+            as="span"
+            aria-hidden="true"
+            className="pointer-events-none fixed size-0"
+            style={position}
+          />
+          <Menu.Content
+            aria-label={item.title + '的操作'}
+            returnFocus={false}
+            onKeyDownCapture={(event) => {
+              if (event.key === 'Escape') row.current?.focus();
+            }}
+            className="min-w-24 p-1"
+          >
+            <Menu.Item ripple onClick={onRemove} className="flex items-center gap-2 text-red-700">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7" />
+              </svg>
+              移除
+            </Menu.Item>
+          </Menu.Content>
+        </Menu>
+      )}
+    </>
   );
 }

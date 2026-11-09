@@ -120,6 +120,7 @@ export function ChatShell({
             Egent<span className="wordmark-dot">.</span>
             <small style={{ fontSize: 12, marginLeft: 12 }}>{'协作空间'}</small>
           </span>
+          <TitleBarMenu />
         </div>
         <div className="identity-label">
           <Avatar
@@ -136,7 +137,6 @@ export function ChatShell({
             {user.name}
             <small>{user.role === 'OWNER' ? 'Owner' : '同事'}</small>
           </span>
-          <TitleBarMenu />
         </div>
       </header>
       <div className="chat-layout" hidden={settings}>
