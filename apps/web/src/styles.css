@@ -206,6 +206,9 @@ body {
   flex-wrap: wrap;
 }
 .sidebar-footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: #737169;
   padding: 5px;
   font-size: 11px;

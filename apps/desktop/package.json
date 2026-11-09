@@ -1,6 +1,9 @@
 {
   "name": "@egent/desktop",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "private": true,
-  "main": "main.cjs"
+  "main": "main.cjs",
+  "dependencies": {
+    "semver": "7.8.5"
+  }
 }

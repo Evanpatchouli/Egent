@@ -165,6 +165,20 @@ export function ChatShell({
                 setSidebar(false);
               }}
             >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m9.5 3-.6 2.1-1.6.9-2.1-.5-2 3.5 1.5 1.6v2.8l-1.5 1.6 2 3.5 2.1-.5 1.6.9.6 2.1h5l.6-2.1 1.6-.9 2.1.5 2-3.5-1.5-1.6v-2.8l1.5-1.6-2-3.5-2.1.5-1.6-.9-.6-2.1z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
               设置
             </Button>
           </div>

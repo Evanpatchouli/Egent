@@ -5,9 +5,19 @@ import gt from 'semver/functions/gt';
 import { version } from '../../../desktop/package.json';
 
 const releasePage = 'https://github.com/Evanpatchouli/Egent/releases/latest';
+declare global {
+  interface Window {
+    egentUpdates?: {
+      install(version: string): Promise<{ ok: true } | { ok: false; message: string }>;
+      cancel(): void;
+      onProgress(callback: (percent: number) => void): () => void;
+    };
+  }
+}
 type Update =
   | { status: 'checking' | 'empty' | 'current' }
   | { status: 'available'; version: string }
+  | { status: 'installing'; percent: number }
   | { status: 'error'; message: string };
 
 export function TitleBarMenu() {
@@ -16,9 +26,27 @@ export function TitleBarMenu() {
   const pending = useRef<AbortController | null>(null);
 
   function close() {
+    if (update.status === 'installing') return;
     pending.current?.abort();
     pending.current = null;
     setPanel(null);
+  }
+
+  async function install() {
+    const updater = window.egentUpdates;
+    if (!updater || update.status !== 'available') return;
+    setUpdate({ status: 'installing', percent: 0 });
+    const unsubscribe = updater.onProgress((percent) =>
+      setUpdate({ status: 'installing', percent }),
+    );
+    try {
+      const result = await updater.install(update.version);
+      if (!result.ok) setUpdate({ status: 'error', message: result.message });
+    } catch {
+      setUpdate({ status: 'error', message: '无法启动更新，请重试。' });
+    } finally {
+      unsubscribe();
+    }
   }
 
   async function check() {
@@ -121,22 +149,45 @@ export function TitleBarMenu() {
                 {update.status === 'empty' && '暂未找到公开发行版。'}
                 {update.status === 'current' && '当前已是最新版本。'}
                 {update.status === 'available' && '发现新版本 v' + update.version}
+                {update.status === 'available' && window.egentUpdates && '，更新完成后会自动重启。'}
+                {update.status === 'installing' &&
+                  (update.percent === 100
+                    ? '正在校验更新，完成后将重启…'
+                    : '正在下载更新 · ' + update.percent + '%')}
                 {update.status === 'error' && update.message}
               </p>
             )}
             <div className="flex justify-end gap-2">
-              {panel === 'update' && update.status === 'available' && (
-                <Button as="a" href={releasePage} target="_blank" rel="noreferrer" ripple>
-                  查看发行版
+              {panel === 'update' && update.status === 'available' && window.egentUpdates && (
+                <Button ripple onClick={() => void install()}>
+                  立即更新
                 </Button>
               )}
+              {panel === 'update' &&
+                ((update.status === 'available' && !window.egentUpdates) ||
+                  update.status === 'error') && (
+                  <Button as="a" href={releasePage} target="_blank" rel="noreferrer" ripple>
+                    查看发行版
+                  </Button>
+                )}
               {panel === 'update' && update.status === 'error' && (
                 <Button ripple onClick={() => void check()}>
                   重试
                 </Button>
               )}
-              <Button ripple variant="ghost" onClick={close}>
-                关闭
+              <Button
+                ripple
+                variant="ghost"
+                disabled={
+                  panel === 'update' && update.status === 'installing' && update.percent === 100
+                }
+                onClick={
+                  panel === 'update' && update.status === 'installing'
+                    ? () => window.egentUpdates?.cancel()
+                    : close
+                }
+              >
+                {panel === 'update' && update.status === 'installing' ? '取消更新' : '关闭'}
               </Button>
             </div>
           </Dialog.Content>

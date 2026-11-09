@@ -56,7 +56,11 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
 
-  apps/desktop: {}
+  apps/desktop:
+    dependencies:
+      semver:
+        specifier: 7.8.5
+        version: 7.8.5
 
   apps/server:
     dependencies:

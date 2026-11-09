@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 import { mkdir, cp, rm, writeFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
 const desktopPackage = JSON.parse(await readFile('apps/desktop/package.json', 'utf8'));
 const staging = path.join(root, 'apps/desktop/build/app');
@@ -19,6 +19,34 @@ await build({
   },
 });
 await cp('apps/desktop/main.cjs', path.join(staging, 'main.cjs'));
+await cp('apps/desktop/update-preload.cjs', path.join(staging, 'update-preload.cjs'));
+await build({
+  entryPoints: ['apps/desktop/portable-update.cjs'],
+  outfile: path.join(staging, 'portable-update.cjs'),
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  target: 'node24',
+});
+if (process.platform === 'win32') {
+  const compiler = path.join(
+    process.env.SystemRoot,
+    'Microsoft.NET/Framework64/v4.0.30319/csc.exe',
+  );
+  execFileSync(
+    compiler,
+    [
+      '/nologo',
+      '/codepage:65001',
+      '/target:exe',
+      '/optimize+',
+      '/reference:System.Windows.Forms.dll',
+      '/out:' + path.join(staging, 'EgentUpdate.exe'),
+      path.join(root, 'apps', 'desktop', 'PortableUpdate.cs'),
+    ],
+    { windowsHide: true, stdio: 'inherit' },
+  );
+}
 await build({
   entryPoints: ['apps/desktop/mcp.mjs'],
   outfile: path.join(staging, 'mcp.cjs'),

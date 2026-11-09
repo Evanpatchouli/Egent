@@ -5,6 +5,8 @@ const {
   dialog,
   Tray,
   Menu,
+  ipcMain,
+  net,
   shell,
   Notification,
 } = require('electron');
@@ -16,6 +18,7 @@ let quitting = false;
 let window;
 let tray;
 let systemNotifications = true;
+let updateController;
 const notifications = new Set();
 function showWindow() {
   if (!window || window.isDestroyed()) return;
@@ -64,6 +67,8 @@ else {
       );
       tray.on('double-click', showWindow);
       let runtimeUrl = null;
+      const launcher =
+        app.isPackaged && process.platform === 'win32' && process.env.PORTABLE_EXECUTABLE_FILE;
       Menu.setApplicationMenu(null);
       window = new BrowserWindow({
         width: 1280,
@@ -76,12 +81,58 @@ else {
         titleBarStyle: 'hidden',
         titleBarOverlay: { color: '#ffffff', symbolColor: '#2b2b28', height: 48 },
         webPreferences: {
+          ...(launcher && { preload: path.join(root, 'update-preload.cjs') }),
           nodeIntegration: false,
           contextIsolation: true,
           sandbox: true,
           backgroundThrottling: false,
         },
       });
+      if (launcher) {
+        const { installPortable } = require(path.join(root, 'portable-update.cjs'));
+        function isUpdateSender(event) {
+          return (
+            runtimeUrl &&
+            event.sender === window?.webContents &&
+            event.senderFrame === window.webContents.mainFrame &&
+            event.senderFrame?.url.startsWith(runtimeUrl + '/')
+          );
+        }
+        ipcMain.on('egent:cancel-update', (event) => {
+          if (isUpdateSender(event)) updateController?.abort();
+        });
+        ipcMain.handle('egent:install-update', async (event, requested) => {
+          if (!isUpdateSender(event) || typeof requested !== 'string')
+            throw new Error('无效的更新请求。');
+          if (quitting || updateController) throw new Error('更新正在进行中。');
+          updateController = new AbortController();
+          try {
+            await installPortable({
+              root,
+              data,
+              launcher,
+              current: app.getVersion(),
+              requested,
+              fetch: (url, options) => net.fetch(url, options),
+              signal: updateController.signal,
+              progress: (percent) => window?.webContents.send('egent:update-progress', percent),
+            });
+            app.quit();
+            return { ok: true };
+          } catch (error) {
+            return {
+              ok: false,
+              message: updateController.signal.aborted
+                ? '更新已取消。'
+                : error.code === 'EACCES' || error.code === 'EPERM'
+                  ? '启动器目录没有写入权限，请将便携版移到可写目录后重试。'
+                  : error.message,
+            };
+          } finally {
+            updateController = undefined;
+          }
+        });
+      }
       window.webContents.setWindowOpenHandler(({ url }) => {
         if (url === 'https://github.com/Evanpatchouli/Egent/releases/latest') {
           void shell
@@ -194,6 +245,7 @@ else {
       app.exit(1);
     });
   app.on('before-quit', (event) => {
+    updateController?.abort();
     if (!backend) {
       quitting = true;
       return;
