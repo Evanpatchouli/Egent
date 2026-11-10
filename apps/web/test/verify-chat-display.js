@@ -44,6 +44,24 @@ async (page) => {
     (await ownAvatar.boundingBox()).x > (await otherAvatar.boundingBox()).x,
     'own avatar must be on the right',
   );
+  for (const id of ['own-task', 'other-task']) {
+    const task = page.locator('[data-message-id="' + id + '"]');
+    check(
+      await task.getByText('创建了一项任务', { exact: true }).isVisible(),
+      'task label missing',
+    );
+    check(await task.locator('.task-creation-content p').isVisible(), 'task content missing');
+  }
+  for (const id of ['own', 'other', 'question', 'revision'])
+    check(
+      (await page.locator('[data-message-id="' + id + '"] .task-creation-content').count()) === 0,
+      'non-creation message must not use task styling',
+    );
+  check(
+    (await page.locator('[data-message-id="own-task"] .task-creation-content p').innerText()) ===
+      '请排查订单问题\nhttps://example.com/issues/15\n保留这些需求的完整内容。',
+    'task content and newlines must be preserved',
+  );
   await page.getByRole('button', { name: '设置', exact: true }).click();
   await page.getByRole('button', { name: '全局设置' }).click();
   const toggle = page.getByRole('switch', { name: '我的消息显示在右侧' });
@@ -59,6 +77,12 @@ async (page) => {
   check(
     Math.abs((await ownAvatar.boundingBox()).x - (await otherAvatar.boundingBox()).x) < 1,
     'own avatar must return to the left',
+  );
+  check(
+    !(await page
+      .locator('[data-message-id="own-task"]')
+      .evaluate((node) => node.classList.contains('own-message'))),
+    'task creation must follow the own-message alignment setting',
   );
   await page.reload();
   check(

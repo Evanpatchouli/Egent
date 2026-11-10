@@ -163,12 +163,14 @@ export class DeviceService {
       const known = new Set(messages.map((message) => message.id));
       const me = await localUser(this.identity);
       let after = messages.at(-1)?.id;
+      let supportsTaskCreation = false;
       for (let pageNumber = 0; pageNumber < 100; pageNumber++) {
         const page = (await this.peers.request(
           peerId,
           'GET',
           '/api/conversations/' + c.id + '/messages?limit=100' + (after ? '&after=' + after : ''),
         )) as MessagePage;
+        supportsTaskCreation ||= page.supportsTaskCreation === true;
         if (me) {
           const readAfter = [c.lastReadAt, this.readWatermarks.get(c.id)]
             .filter((value): value is string => !!value)
@@ -203,6 +205,35 @@ export class DeviceService {
           break;
         }
         after = page.nextCursor ?? undefined;
+      }
+      // Upgrade old offline replicas once the authority can classify historical messages.
+      const markerResource = 'message-task-markers:' + c.id;
+      if (
+        supportsTaskCreation &&
+        !(await prisma.remoteSnapshot.findUnique({
+          where: { peerId_resource: { peerId, resource: markerResource } },
+        }))
+      ) {
+        if (stored && messages.some((m) => m.senderType === 'USER' && m.agentTaskId)) {
+          let before: string | null = null;
+          do {
+            const page = (await this.peers.request(
+              peerId,
+              'GET',
+              '/api/conversations/' +
+                c.id +
+                '/messages?limit=100' +
+                (before ? '&before=' + before : ''),
+            )) as MessagePage;
+            if (!page.supportsTaskCreation) throw new Error('任务消息标记不可用');
+            messages = [
+              ...new Map([...messages, ...page.items].map((m) => [m.id, m])).values(),
+            ].sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+            await this.cache(peerId, 'messages:' + c.id, messages);
+            before = page.nextCursor;
+          } while (before);
+        }
+        await this.cache(peerId, markerResource, true);
       }
     }
     chatEvents.emit('peerSync', peerId);

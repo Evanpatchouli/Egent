@@ -15,10 +15,12 @@ type Stored = {
   content: string;
   createdAt: Date;
   sender: MessageInfo['sender'];
+  triggeredTask?: { intent: string } | null;
 };
 function dto(row: Stored): MessageInfo {
   return {
     ...(row.agentTaskId ? { agentTaskId: row.agentTaskId } : {}),
+    ...(row.triggeredTask?.intent === 'TASK' ? { isTaskCreation: true } : {}),
     id: row.id,
     conversationId: row.conversationId,
     clientMessageId: row.clientMessageId,
@@ -65,12 +67,17 @@ export async function messageHistory(
     },
     orderBy: [{ createdAt: forward ? 'asc' : 'desc' }, { id: forward ? 'asc' : 'desc' }],
     take: limit + 1,
-    include: { sender: { select: senderSelect } },
+    include: { sender: { select: senderSelect }, triggeredTask: { select: { intent: true } } },
   });
   const hasMore = rows.length > limit;
   const page = rows.slice(0, limit);
   const nextCursor = hasMore ? page.at(-1)!.id : null;
-  return { items: (forward ? page : page.reverse()).map(dto), hasMore, nextCursor };
+  return {
+    items: (forward ? page : page.reverse()).map(dto),
+    hasMore,
+    nextCursor,
+    supportsTaskCreation: true,
+  };
 }
 /** Persist once, atomically derive the first-message title, and broadcast only after commit. */
 export async function sendMessage(
@@ -121,7 +128,7 @@ export async function sendMessage(
         });
         if (previous.content !== content || (previousTask?.intent ?? undefined) !== intent)
           throw new ApiError(409, 'IDEMPOTENCY_CONFLICT', '同一消息标识不能用于不同内容');
-        return { message: dto(previous), created: false };
+        return { message: dto({ ...previous, triggeredTask: previousTask }), created: false };
       }
       const latest = await tx.message.findFirst({
         where: { conversationId: id },
@@ -172,7 +179,11 @@ export async function sendMessage(
               : null,
         },
       });
-      return { message: dto({ ...row, agentTaskId: task?.id ?? null }), created: true, task };
+      return {
+        message: dto({ ...row, agentTaskId: task?.id ?? null, triggeredTask: task }),
+        created: true,
+        task,
+      };
     }),
   );
   if (result.created) {

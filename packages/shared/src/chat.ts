@@ -9,6 +9,8 @@ export interface ChatSender {
 /** Persisted plain-text message, identical over HTTP and Socket.IO. */
 export interface MessageInfo {
   agentTaskId?: string;
+  /** True only for the message that created an explicit development task. */
+  isTaskCreation?: boolean;
   id: string;
   conversationId: string;
   clientMessageId: string | null;
@@ -46,6 +48,8 @@ export interface MessagePage {
   items: MessageInfo[];
   hasMore: boolean;
   nextCursor: string | null;
+  /** The authority can identify task-creation messages in historical pages. */
+  supportsTaskCreation?: boolean;
 }
 /** Idempotency key must remain unchanged for retries of the same content. */
 export interface SendMessageInput {

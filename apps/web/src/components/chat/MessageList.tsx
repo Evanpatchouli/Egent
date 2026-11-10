@@ -158,7 +158,30 @@ export function MessageList({
                     })}
                   </time>
                 </div>
-                <p>{message.content}</p>
+                {message.isTaskCreation ? (
+                  <div className="task-creation-content">
+                    <div className="task-creation-label">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect x="5" y="4" width="14" height="17" rx="2" />
+                        <path d="M9 4.5h6M9 11h6M9 15h6" />
+                      </svg>
+                      <span>创建了一项任务</span>
+                    </div>
+                    <p>{message.content}</p>
+                  </div>
+                ) : (
+                  <p>{message.content}</p>
+                )}
               </div>
             </article>
           );

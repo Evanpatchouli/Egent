@@ -477,6 +477,38 @@ body {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+.task-creation-content {
+  width: fit-content;
+  max-width: 640px;
+  padding: 14px 16px;
+  border: 1px solid #dce5d8;
+  border-left: 3px solid #91a58a;
+  border-radius: 10px;
+  background: #f7f9f5;
+  text-align: left;
+}
+.own-message .task-creation-content {
+  margin-left: auto;
+}
+.task-creation-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+  color: #5c7657;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.task-creation-label svg {
+  flex-shrink: 0;
+}
+.task-creation-content p {
+  font-size: 14px;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .system-message .message-body > p {
   color: #979287;
   font-size: 12px;

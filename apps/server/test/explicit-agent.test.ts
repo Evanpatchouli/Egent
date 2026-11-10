@@ -4,6 +4,7 @@ import { mkdtemp } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import type { AgentExecutor, AnalysisResult } from '../src/agent/contracts.js';
+import type { MessageInfo, MessagePage } from '@egent/shared';
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 process.env.EGENT_DATA_DIR = await mkdtemp(root + '.tmp/explicit-agent-');
 const { prisma, initializeDatabase } = await import('@egent/database');
@@ -11,7 +12,9 @@ await initializeDatabase();
 const { AgentService } = await import('../src/agent/service.js');
 const { createConversation, inviteMembers, setAgentParticipation } =
   await import('../src/services/conversations.js');
-const { sendMessage } = await import('../src/services/messages.js');
+const { messageHistory, sendMessage } = await import('../src/services/messages.js');
+const { chatEvents } = await import('../src/services/chat-events.js');
+const { DeviceService } = await import('../src/device/service.js');
 const owner = await prisma.user.create({
   data: { identifier: 'a'.repeat(64), name: 'Owner', role: 'OWNER' },
 });
@@ -219,6 +222,116 @@ try {
       assert.match(implementationMessage.content, /不会自动回滚/);
     } finally {
       failurePhase = undefined;
+    }
+  });
+  await test('only the task-creation message is marked in broadcasts, retries and history', async () => {
+    const c = await createConversation(owner, project, reader);
+    await setAgentParticipation(owner, c.id, false);
+    classify = 'DEVELOPMENT_SIMPLE';
+    const published: MessageInfo[] = [];
+    const collect = (message: MessageInfo) => published.push(message);
+    chatEvents.on('message', collect);
+    try {
+      const normal = await sendMessage(owner, c.id, body('普通消息'));
+      const question = await sendMessage(owner, c.id, body('@Egent 只读问题'));
+      const input = body('创建任务的需求\n保留原始换行');
+      const task = await agent.create(owner, c.id, input);
+      const created = published.find((message) => message.agentTaskId === task.taskId);
+      assert.ok(created);
+      assert.equal(created.isTaskCreation, true);
+      assert.equal((await sendMessage(owner, c.id, input, 'TASK')).isTaskCreation, true);
+      assert.equal(normal.isTaskCreation, undefined);
+      assert.equal(question.isTaskCreation, undefined);
+
+      await agent.idle();
+      await agent.action(owner, task.taskId, 'revise', {
+        ...approval(await latest(task.taskId)),
+        content: '补充需求',
+      });
+      await agent.idle();
+      const page = await messageHistory(owner, c.id, { limit: 100 });
+      assert.equal(page.supportsTaskCreation, true);
+      assert.equal(page.items.find((message) => message.id === created.id)?.isTaskCreation, true);
+      assert.deepEqual(
+        page.items.filter((message) => message.isTaskCreation).map((message) => message.id),
+        [created.id],
+      );
+      assert.ok(page.items.some((message) => message.content.includes('补充需求')));
+      assert.ok(page.items.some((message) => message.senderType === 'AGENT'));
+    } finally {
+      chatEvents.off('message', collect);
+    }
+  });
+  await test('old offline snapshots gain markers after an upgraded authority syncs all history', async () => {
+    const c = await createConversation(owner, project, reader);
+    await setAgentParticipation(owner, c.id, false);
+    classify = 'DEVELOPMENT_SIMPLE';
+    const task = await agent.create(owner, c.id, body('旧历史中的任务'));
+    await agent.idle();
+    const trigger = await latest(task.taskId);
+    const last = await prisma.message.findFirstOrThrow({
+      where: { conversationId: c.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    await prisma.message.createMany({
+      data: Array.from({ length: 105 }, (_, index) => ({
+        id: randomUUID(),
+        conversationId: c.id,
+        senderType: 'USER' as const,
+        senderUserId: owner.id,
+        clientMessageId: randomUUID(),
+        content: '后续普通消息 ' + index,
+        createdAt: new Date(last.createdAt.getTime() + index + 1),
+      })),
+    });
+    const legacy: MessageInfo[] = [];
+    let before: string | null = null;
+    do {
+      const page: MessagePage = await messageHistory(owner, c.id, {
+        limit: 100,
+        ...(before ? { before } : {}),
+      });
+      legacy.unshift(...page.items.map((message) => ({ ...message, isTaskCreation: undefined })));
+      before = page.nextCursor;
+    } while (before);
+
+    const device = new DeviceService(
+      { deviceId: owner.identifier, publicKey: '', privateKey: '' },
+      'test-token',
+    );
+    const peerId = 'historical-peer';
+    let upgraded = false;
+    let backfills = 0;
+    device.peers.request = async (_peerId, _method, path) => {
+      if (path === '/api/conversations') return [c];
+      if (path === '/api/projects' || path.endsWith('/agent-tasks')) return [];
+      const url = new URL(path, 'http://peer');
+      if (!url.searchParams.has('after')) backfills++;
+      const page = await messageHistory(owner, c.id, Object.fromEntries(url.searchParams));
+      if (upgraded) return page;
+      delete page.supportsTaskCreation;
+      page.items = page.items.map((message) => ({ ...message, isTaskCreation: undefined }));
+      return page;
+    };
+    try {
+      await device.cache(peerId, 'messages:' + c.id, legacy);
+      await device.sync(peerId);
+      assert.equal(backfills, 0);
+      upgraded = true;
+      await device.sync(peerId);
+      assert.equal(backfills, 2);
+      const cached = (await device.cached(
+        peerId,
+        '/api/conversations/' + c.id + '/messages?limit=100&before=' + legacy[100]!.id,
+      )) as MessagePage;
+      assert.equal(
+        cached.items.find((message) => message.id === trigger.triggerMessageId)?.isTaskCreation,
+        true,
+      );
+      await device.sync(peerId);
+      assert.equal(backfills, 2);
+    } finally {
+      device.stop();
     }
   });
 } finally {
