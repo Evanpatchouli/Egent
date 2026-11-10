@@ -1,13 +1,10 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const { createWriteStream } = require('node:fs');
-const { createHash } = require('node:crypto');
 const { spawn } = require('node:child_process');
-const { pipeline } = require('node:stream/promises');
 const semver = require('semver');
+const { downloadAsset, fetchRelease } = require('./update-download.cjs');
 
 const repository = 'https://github.com/Evanpatchouli/Egent';
-const latest = 'https://api.github.com/repos/Evanpatchouli/Egent/releases/latest';
 
 function selectAsset(release, current, requested) {
   const version = semver.valid(release.tag_name);
@@ -37,31 +34,6 @@ function selectAsset(release, current, requested) {
     throw new Error('该发行版缺少可校验的 Windows x64 便携包。');
   }
   return { url, size: asset.size, hash: asset.digest.slice(7) };
-}
-
-async function download(response, asset, file, progress, timer) {
-  if (!response.ok || !response.body) throw new Error('下载失败（HTTP ' + response.status + '）。');
-  const hash = createHash('sha256');
-  let received = 0,
-    lastPercent = -1;
-  await pipeline(
-    response.body,
-    async function* (source) {
-      for await (const chunk of source) {
-        timer.refresh();
-        received += chunk.length;
-        if (received > asset.size) throw new Error('更新包大小与发行记录不符。');
-        hash.update(chunk);
-        const percent = Math.floor((received / asset.size) * 100);
-        if (percent !== lastPercent) progress(percent);
-        lastPercent = percent;
-        yield chunk;
-      }
-    },
-    createWriteStream(file, { flags: 'wx' }),
-  );
-  if (received !== asset.size || hash.digest('hex') !== asset.hash)
-    throw new Error('更新包校验失败，请重试。');
 }
 
 // The helper signals readiness only after opening the portable launcher process
@@ -113,24 +85,12 @@ async function installPortable({
   progress,
   signal,
 }) {
-  const metadata = await fetch(latest, {
-    credentials: 'omit',
-    cache: 'no-store',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(15000)]),
-  });
-  if (!metadata.ok) throw new Error('无法读取发行信息（HTTP ' + metadata.status + '）。');
-  const asset = selectAsset(await metadata.json(), current, requested);
+  const metadata = await fetchRelease({ fetch, signal, progress });
+  const asset = selectAsset(metadata, current, requested);
   const directory = await fs.mkdtemp(path.join(path.dirname(launcher), '.egent-update-'));
   const staged = path.join(directory, 'update.exe');
-  const stalled = new AbortController();
-  const timer = setTimeout(() => stalled.abort(), 60000);
   try {
-    const response = await fetch(asset.url, {
-      credentials: 'omit',
-      signal: AbortSignal.any([signal, stalled.signal]),
-    });
-    await download(response, asset, staged, progress, timer);
-    clearTimeout(timer);
+    await downloadAsset({ fetch, asset, file: staged, progress, signal });
     const helper = path.join(data, 'EgentUpdate.exe');
     await fs.copyFile(path.join(root, 'EgentUpdate.exe'), helper);
     signal.throwIfAborted();
@@ -138,11 +98,7 @@ async function installPortable({
   } catch (error) {
     await fs.rm(staged, { force: true });
     await fs.rmdir(directory);
-    if (stalled.signal.aborted)
-      throw new Error('下载连接超时，请检查网络后重试。', { cause: error });
     throw error;
-  } finally {
-    clearTimeout(timer);
   }
 }
 

@@ -115,7 +115,7 @@ else {
               requested,
               fetch: (url, options) => net.fetch(url, options),
               signal: updateController.signal,
-              progress: (percent) => window?.webContents.send('egent:update-progress', percent),
+              progress: (status) => window?.webContents.send('egent:update-progress', status),
             });
             app.quit();
             return { ok: true };

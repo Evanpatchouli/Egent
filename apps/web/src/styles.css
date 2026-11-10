@@ -47,6 +47,92 @@ body {
   padding: 0;
   border-radius: 6px;
 }
+.update-progress {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e3e9de;
+  border-radius: 12px;
+  background: #f7f9f4;
+  color: #2e3a30;
+}
+.update-progress__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.update-progress__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #e5eddf;
+  color: #54744f;
+}
+.update-progress__copy {
+  flex: 1;
+  min-width: 0;
+}
+.update-progress__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.update-progress__detail {
+  margin: 3px 0 0;
+  color: #71806f;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.update-progress__percent {
+  margin: 0;
+  color: #4d6e4c;
+  font-size: 21px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+.update-progress__percent span {
+  margin-left: 1px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.update-progress__track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dfe8da;
+}
+.update-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #839e74, #5a8064);
+  transition: width 250ms ease;
+}
+@media (max-width: 420px) {
+  .update-progress__icon {
+    display: none;
+  }
+  .update-progress__heading {
+    gap: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-progress__fill {
+    transition: none;
+  }
+}
+@media (forced-colors: active) {
+  .update-progress__track {
+    border: 1px solid CanvasText;
+  }
+  .update-progress__fill {
+    background: Highlight;
+  }
+}
 .wordmark {
   font-size: 23px;
   font-weight: 700;

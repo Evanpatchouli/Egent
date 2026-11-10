@@ -3,7 +3,7 @@ contextBridge.exposeInMainWorld('egentUpdates', {
   install: (version) => ipcRenderer.invoke('egent:install-update', version),
   cancel: () => ipcRenderer.send('egent:cancel-update'),
   onProgress: (callback) => {
-    const listener = (_event, percent) => callback(percent);
+    const listener = (_event, status) => callback(status);
     ipcRenderer.on('egent:update-progress', listener);
     return () => ipcRenderer.removeListener('egent:update-progress', listener);
   },

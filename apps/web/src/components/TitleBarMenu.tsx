@@ -5,19 +5,20 @@ import gt from 'semver/functions/gt';
 import { version } from '../../../desktop/package.json';
 
 const releasePage = 'https://github.com/Evanpatchouli/Egent/releases/latest';
+type UpdateProgress = { percent: number; retry?: { attempt: number; limit: number } };
 declare global {
   interface Window {
     egentUpdates?: {
       install(version: string): Promise<{ ok: true } | { ok: false; message: string }>;
       cancel(): void;
-      onProgress(callback: (percent: number) => void): () => void;
+      onProgress(callback: (progress: UpdateProgress) => void): () => void;
     };
   }
 }
 type Update =
   | { status: 'checking' | 'empty' | 'current' }
   | { status: 'available'; version: string }
-  | { status: 'installing'; percent: number }
+  | ({ status: 'installing' } & UpdateProgress)
   | { status: 'error'; message: string };
 
 export function TitleBarMenu() {
@@ -36,8 +37,8 @@ export function TitleBarMenu() {
     const updater = window.egentUpdates;
     if (!updater || update.status !== 'available') return;
     setUpdate({ status: 'installing', percent: 0 });
-    const unsubscribe = updater.onProgress((percent) =>
-      setUpdate({ status: 'installing', percent }),
+    const unsubscribe = updater.onProgress((progress) =>
+      setUpdate({ status: 'installing', ...progress }),
     );
     try {
       const result = await updater.install(update.version);
@@ -143,6 +144,52 @@ export function TitleBarMenu() {
             </div>
             {panel === 'about' ? (
               <p>在本机或同事开放的项目中聊天，与 Egent 一起完成开发任务。</p>
+            ) : update.status === 'installing' ? (
+              <div className="update-progress">
+                <div className="update-progress__heading">
+                  <div className="update-progress__icon" aria-hidden="true">
+                    <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+                      <path
+                        d="M10 3v9m-3.25-3L10 12.25 13.25 9M4 14.25v2h12v-2"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="update-progress__copy" role="status">
+                    <p className="update-progress__title">
+                      {update.retry
+                        ? '正在重新连接'
+                        : update.percent === 100
+                          ? '正在校验更新'
+                          : '正在下载更新'}
+                    </p>
+                    <p className="update-progress__detail">
+                      {update.retry
+                        ? `连接暂不可用，正在重试（${update.retry.attempt}/${update.retry.limit}）`
+                        : update.percent === 100
+                          ? '完成后将自动重启'
+                          : '下载完成后将自动校验并重启'}
+                    </p>
+                  </div>
+                  <p className="update-progress__percent" aria-hidden="true">
+                    {update.percent}
+                    <span>%</span>
+                  </p>
+                </div>
+                <div
+                  className="update-progress__track"
+                  role="progressbar"
+                  aria-label="更新下载进度"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={update.percent}
+                >
+                  <div className="update-progress__fill" style={{ width: `${update.percent}%` }} />
+                </div>
+              </div>
             ) : (
               <p role="status">
                 {update.status === 'checking' && '正在检查更新…'}
@@ -150,10 +197,6 @@ export function TitleBarMenu() {
                 {update.status === 'current' && '当前已是最新版本。'}
                 {update.status === 'available' && '发现新版本 v' + update.version}
                 {update.status === 'available' && window.egentUpdates && '，更新完成后会自动重启。'}
-                {update.status === 'installing' &&
-                  (update.percent === 100
-                    ? '正在校验更新，完成后将重启…'
-                    : '正在下载更新 · ' + update.percent + '%')}
                 {update.status === 'error' && update.message}
               </p>
             )}

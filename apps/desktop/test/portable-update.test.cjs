@@ -30,7 +30,7 @@ test('a rejected or incomplete update leaves the original launcher intact', asyn
       0,
     ],
     ['missing checksum', { digest: null }, {}, '1.0.0', 0],
-    ['truncated download', { size: bytes.length + 1 }, {}, '1.0.0', 1],
+    ['truncated download', { size: bytes.length + 1 }, {}, '1.0.0', 4],
     ['oversized download', { size: bytes.length - 1 }, {}, '1.0.0', 1],
     ['checksum mismatch', { digest: 'sha256:' + '0'.repeat(64) }, {}, '1.0.0', 1],
   ]) {
@@ -56,11 +56,85 @@ test('a rejected or incomplete update leaves the original launcher intact', asyn
               : new Response(bytes);
           },
         }),
-        /发行版本已变化|缺少可校验|更新包大小|更新包校验失败/,
+        /发行版本已变化|缺少可校验|更新包大小|更新包校验失败|下载多次中断/,
       );
       assert.equal(calls.length, downloads + 1);
       assert.deepEqual(await fs.readdir(directory), ['My Egent.exe']);
       assert.equal(await fs.readFile(launcher, 'utf8'), 'original');
     });
   }
+  await t.test('cancel during retry cleans partial files and preserves the launcher', async () => {
+    const abort = new AbortController();
+    let calls = 0;
+    await assert.rejects(
+      installPortable({
+        root: directory,
+        data: directory,
+        launcher,
+        current: '0.9.0',
+        requested: '1.0.0',
+        signal: abort.signal,
+        progress: (event) => {
+          if (event.retry) abort.abort();
+        },
+        async fetch() {
+          calls++;
+          if (calls === 1) return Response.json({ tag_name: 'v1.0.0', assets: [asset] });
+          throw new TypeError('network unavailable');
+        },
+      }),
+      { name: 'AbortError' },
+    );
+    assert.equal(calls, 2);
+    assert.deepEqual(await fs.readdir(directory), ['My Egent.exe']);
+    assert.equal(await fs.readFile(launcher, 'utf8'), 'original');
+  });
+  await t.test(
+    'cancel during a partial download removes it and preserves the launcher',
+    async () => {
+      const abort = new AbortController();
+      let calls = 0;
+      await assert.rejects(
+        installPortable({
+          root: directory,
+          data: directory,
+          launcher,
+          current: '0.9.0',
+          requested: '1.0.0',
+          signal: abort.signal,
+          progress: (event) => {
+            if (event.percent > 0) abort.abort();
+          },
+          async fetch(_url, options) {
+            calls++;
+            if (calls === 1) return Response.json({ tag_name: 'v1.0.0', assets: [asset] });
+            let sent = false;
+            return new Response(
+              new ReadableStream({
+                start(controller) {
+                  options.signal.addEventListener(
+                    'abort',
+                    () => controller.error(options.signal.reason),
+                    {
+                      once: true,
+                    },
+                  );
+                },
+                pull(controller) {
+                  if (!sent) {
+                    sent = true;
+                    controller.enqueue(bytes.subarray(0, 4));
+                  }
+                },
+              }),
+            );
+          },
+        }),
+        { name: 'AbortError' },
+      );
+      assert.equal(calls, 2);
+      assert.deepEqual(await fs.readdir(directory), ['My Egent.exe']);
+      assert.equal(await fs.readFile(launcher, 'utf8'), 'original');
+    },
+  );
 });
