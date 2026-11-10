@@ -232,7 +232,10 @@ export class AgentService {
               : '处理失败';
         await changeTask(current, 'FAILED', {
           data: { errorMessage: reason },
-          message: 'Egent 未完成本次请求：' + reason + '\n实施阶段产生的修改不会自动回滚。',
+          message:
+            'Egent 未完成本次请求：' +
+            reason +
+            (current.status === 'IMPLEMENTING' ? '\n实施阶段产生的修改不会自动回滚。' : ''),
         });
       }
     } finally {

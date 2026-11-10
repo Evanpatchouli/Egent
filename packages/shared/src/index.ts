@@ -1,5 +1,7 @@
+import desktopPackage from '../../../apps/desktop/package.json' with { type: 'json' };
+
 /** Desktop release version reported by the health endpoint. */
-export const EGENT_VERSION = '0.5.5';
+export const EGENT_VERSION = desktopPackage.version;
 export * from './identity.js';
 export * from './api.js';
 export * from './chat.js';

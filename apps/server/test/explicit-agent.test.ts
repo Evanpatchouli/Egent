@@ -30,8 +30,10 @@ let implementsCount = 0,
   maximum = 0;
 let block: Promise<void> | undefined;
 let classify: AnalysisResult['type'] = 'DEVELOPMENT_SIMPLE';
+let failurePhase: 'analyze' | 'implement' | undefined;
 const executor: AgentExecutor = {
   analyze: async (input) => {
+    if (failurePhase === 'analyze') throw new Error('分析启动失败');
     prompts.push(input.prompt);
     return {
       type: classify,
@@ -48,6 +50,7 @@ const executor: AgentExecutor = {
   },
   participate: async () => ({ shouldReply: false, answer: '', evidence: [] }),
   implement: async () => {
+    if (failurePhase === 'implement') throw new Error('实施启动失败');
     implementsCount++;
     active++;
     maximum = Math.max(maximum, active);
@@ -185,6 +188,38 @@ try {
     await sendMessage(other, c.id, body('@Egent 解释现在这个项目'));
     await agent.idle();
     assert.ok(!prompts.at(-1)!.includes('PRIVATE_TASK_BEFORE_JOIN'));
+  });
+  await test('failure messages mention rollback only after implementation starts', async () => {
+    const c = await createConversation(owner, project, reader);
+    await setAgentParticipation(owner, c.id, false);
+    try {
+      failurePhase = 'analyze';
+      await sendMessage(owner, c.id, body('@Egent 解释项目'));
+      await agent.idle();
+      const question = await prisma.agentTask.findFirstOrThrow({ where: { conversationId: c.id } });
+      const questionMessage = await prisma.message.findFirstOrThrow({
+        where: { agentTaskId: question.id, senderType: 'AGENT' },
+        orderBy: { createdAt: 'desc' },
+      });
+      assert.match(questionMessage.content, /分析启动失败/);
+      assert.doesNotMatch(questionMessage.content, /不会自动回滚/);
+
+      failurePhase = undefined;
+      classify = 'DEVELOPMENT_SIMPLE';
+      const task = await agent.create(owner, c.id, body('实现指定目标'));
+      await agent.idle();
+      failurePhase = 'implement';
+      await agent.action(owner, task.taskId, 'confirm', approval(await latest(task.taskId)));
+      await agent.idle();
+      const implementationMessage = await prisma.message.findFirstOrThrow({
+        where: { agentTaskId: task.taskId, senderType: 'AGENT' },
+        orderBy: { createdAt: 'desc' },
+      });
+      assert.match(implementationMessage.content, /实施启动失败/);
+      assert.match(implementationMessage.content, /不会自动回滚/);
+    } finally {
+      failurePhase = undefined;
+    }
   });
 } finally {
   await agent.stop();

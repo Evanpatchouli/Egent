@@ -17,12 +17,14 @@
     "@koa/bodyparser": "6.1.0",
     "@koa/cors": "5.0.0",
     "@koa/router": "15.7.0",
+    "cross-spawn": "7.0.6",
     "dotenv": "17.4.2",
     "koa": "3.2.1",
     "smol-toml": "1.8.0",
     "socket.io": "4.8.3"
   },
   "devDependencies": {
+    "@types/cross-spawn": "6.0.6",
     "@types/koa": "3.0.3",
     "@types/koa__cors": "5.0.1",
     "socket.io-client": "4.8.3",

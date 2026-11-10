@@ -1,4 +1,3 @@
-import { spawn } from 'node:child_process';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { dataDirectory } from '@egent/database';
@@ -50,7 +49,7 @@ export class CodexCliExecutor implements AgentExecutor {
   constructor(
     private command: string,
     private timeoutMs: number,
-    private adapter: SpawnAdapter = spawn,
+    private adapter?: SpawnAdapter,
     private profile = defaultAgentModel('codex'),
   ) {}
   private async execute<K extends keyof typeof schemas>(kind: K, input: ExecutionInput) {

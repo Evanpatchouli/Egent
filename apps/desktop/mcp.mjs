@@ -5,8 +5,9 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+import desktopPackage from './package.json' with { type: 'json' };
 
-const server = new McpServer({ name: 'egent', version: '0.5.5' });
+const server = new McpServer({ name: 'egent', version: desktopPackage.version });
 const uuid = z.uuid();
 const conversation = { conversationId: uuid };
 const historyPath = (id) => '/api/conversations/' + id + '/messages';

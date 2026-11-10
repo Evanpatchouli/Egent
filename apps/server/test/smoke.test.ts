@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { after, before, test } from 'node:test';
@@ -9,6 +10,9 @@ import { attachSocketServer } from '../src/socket/index.js';
 
 const allowedOrigin = 'http://localhost:5173';
 const deniedOrigin = 'http://untrusted.invalid';
+const desktopVersion = JSON.parse(
+  readFileSync(new URL('../../desktop/package.json', import.meta.url), 'utf8'),
+).version as string;
 const server = createServer(createApp([allowedOrigin]).callback());
 const socketServer = attachSocketServer(server, [allowedOrigin]);
 let baseUrl: string;
@@ -30,7 +34,7 @@ test('health returns the shared contract and allows configured browser origins',
   const body = (await response.json()) as Record<string, unknown>;
   assert.equal(body.ok, true);
   assert.equal(body.service, 'egent-server');
-  assert.equal(body.version, '0.5.5');
+  assert.equal(body.version, desktopVersion);
   assert.equal(typeof body.timestamp, 'string');
   assert.ok(Number.isFinite(Date.parse(String(body.timestamp))));
 });

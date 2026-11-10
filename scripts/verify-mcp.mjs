@@ -11,6 +11,19 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { unpackedExe, version } from './release-paths.mjs';
 
+const desktopPath = path.resolve(process.argv[2] ?? unpackedExe);
+const executableVersion = execFileSync(
+  path.join(process.env.WINDIR, 'System32/WindowsPowerShell/v1.0/powershell.exe'),
+  [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    '(Get-Item -LiteralPath $env:EGENT_VERIFY_EXE).VersionInfo.FileVersion',
+  ],
+  { encoding: 'utf8', env: { ...process.env, EGENT_VERIFY_EXE: desktopPath } },
+).trim();
+assert.equal(executableVersion, version, 'packaged executable version');
+
 const data = await mkdtemp(path.join(tmpdir(), 'Egent MCP '));
 const project = path.join(data, 'project');
 await mkdir(project);
@@ -52,7 +65,7 @@ const listener = createServer();
 await new Promise((resolve) => listener.listen(0, '127.0.0.1', resolve));
 const port = String(listener.address().port);
 await new Promise((resolve) => listener.close(resolve));
-const desktop = spawn(path.resolve(process.argv[2] ?? unpackedExe), [], {
+const desktop = spawn(desktopPath, [], {
   windowsHide: true,
   stdio: 'ignore',
   env: {
@@ -86,6 +99,16 @@ try {
     }
   }
   assert.ok(runtime, 'desktop backend started');
+  const launcher = await readFile(path.join(data, 'egent-mcp.cmd'), 'utf8');
+  const launcherCommand = launcher.split(/\r?\n/).find((line) => /^"[^"]+"\s+"[^"]+"$/.test(line));
+  const launcherPaths = launcherCommand?.match(/^"([^"]+)"\s+"([^"]+)"$/);
+  assert.ok(launcherPaths, 'packaged MCP launcher contains its runtime paths');
+  const packagedMcpPath = launcherPaths[2].replaceAll('%%', '%');
+  assert.equal(path.basename(packagedMcpPath), 'mcp.cjs');
+  const packagedDesktop = JSON.parse(
+    await readFile(path.join(path.dirname(packagedMcpPath), 'package.json'), 'utf8'),
+  );
+  assert.equal(packagedDesktop.version, version, 'packaged application version');
   async function setup(method, route, body) {
     const res = await fetch(runtime.url + '/api/' + route, {
       method,
@@ -96,7 +119,7 @@ try {
     return res.json();
   }
   await setup('POST', 'device/nickname', { name: '验收' });
-  assert.equal((await setup('GET', 'health')).version, version);
+  assert.equal((await setup('GET', 'health')).version, version, 'packaged health version');
   assert.equal((await setup('GET', 'device/notification-settings')).systemNotifications, true);
   assert.equal(
     (await setup('PUT', 'device/notification-settings', { systemNotifications: false }))
@@ -138,7 +161,7 @@ try {
       args: ['/d', '/c', 'call', path.join(data, 'egent-mcp.cmd')],
     }),
   );
-  assert.equal(client.getServerVersion().version, version);
+  assert.equal(client.getServerVersion().version, version, 'packaged MCP server version');
   assert.equal((await client.listTools()).tools.length, 4);
   async function call(name, args) {
     const res = await client.callTool({ name, arguments: args });
@@ -171,6 +194,9 @@ try {
   const history = await call('read_messages', { conversationId, after: sent.id });
   assert.ok(
     history.items.some((m) => m.agentTaskId === sent.agentTaskId && m.content.startsWith('FIRST')),
+  );
+  console.log(
+    `Packaged version ${version} verified in the executable, application, health endpoint and MCP server.`,
   );
   console.log('Packaged MCP verified: discovery, Unicode, retry, correlated answers and history.');
 } finally {

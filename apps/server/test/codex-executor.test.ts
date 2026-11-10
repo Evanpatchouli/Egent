@@ -7,6 +7,9 @@ import { finalJson, CodexCliExecutor } from '../src/agent/codex-executor.js';
 import { runProcess, type SpawnAdapter } from '../src/agent/cli-process.js';
 import { createAgentExecutor } from '../src/agent/executor.js';
 import { existsSync, readFileSync } from 'node:fs';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import { parseResult } from '../src/agent/contracts.js';
 import { codexFailure, redactCodexError } from '../src/agent/codex-errors.js';
 
@@ -39,7 +42,7 @@ function mock(
     });
     queueMicrotask(() => {
       if (mode === 'error') {
-        proc.emit('error', new Error('ENOENT'));
+        proc.emit('error', Object.assign(new Error('private command path'), { code: 'ENOENT' }));
         proc.emit('close', -2);
       }
       if (mode === 'nonzero') {
@@ -112,6 +115,161 @@ await test('launch failure, nonzero exit, timeout, cancellation and output limit
   await assert.rejects(running);
   assert.ok(fake.killed);
 });
+
+await test('launch diagnostics explain system codes without exposing error details', async () => {
+  const missing = mock('error');
+  await assert.rejects(runProcess('codex', [], input(), 1000, missing.spawn), (error: Error) => {
+    assert.match(error.message, /ENOENT/);
+    assert.match(error.message, /PATH/);
+    assert.match(error.message, /CODEX_COMMAND/);
+    assert.ok(!error.message.includes('private command path'));
+    return true;
+  });
+  const denied: SpawnAdapter = () => {
+    throw Object.assign(new Error('private command path'), { code: 'EACCES' });
+  };
+  await assert.rejects(runProcess('codex', [], input(), 1000, denied), (error: Error) => {
+    assert.match(error.message, /EACCES/);
+    assert.match(error.message, /权限/);
+    assert.ok(!error.message.includes('private command path'));
+    return true;
+  });
+  await assert.rejects(
+    runProcess('egent-nonexistent-codex-test', [], input(), 10000),
+    /ENOENT.*CODEX_COMMAND/,
+  );
+});
+
+await test('native executables still receive arguments and stdin directly', async () => {
+  const prompt = '用户内容 $(不要执行) ; & 中文';
+  const script =
+    "process.stdin.setEncoding('utf8'); process.stdin.on('data', s => process.stdout.write(s));";
+  const result = await runProcess(process.execPath, ['-e', script], { ...input(), prompt }, 10000);
+  assert.equal(result.stdout, prompt);
+});
+
+await test(
+  'Windows global cmd shim starts with safe arguments and stdin',
+  { skip: process.platform !== 'win32' },
+  async () => {
+    const fixture = path.resolve(
+      await mkdtemp(path.join(os.tmpdir(), 'egent 中文 & %TEST_NAME% test-')),
+    );
+    assert.equal(path.dirname(fixture), path.resolve(os.tmpdir()));
+    const bin = path.join(fixture, 'global bin');
+    const shim = path.join(bin, 'codex.cmd');
+    const capture = path.join(fixture, 'capture.json');
+    const previousPath = process.env.PATH;
+    const previousCapture = process.env.TEST_CODEX_CAPTURE;
+    try {
+      await mkdir(bin);
+      await writeFile(
+        path.join(bin, 'fixture.cjs'),
+        `const fs = require('node:fs');
+let prompt = '';
+process.stdin.setEncoding('utf8');
+process.stdin.on('data', value => prompt += value);
+process.stdin.on('end', () => {
+  fs.writeFileSync(process.env.TEST_CODEX_CAPTURE, JSON.stringify({ args: process.argv.slice(2), prompt, pid: process.pid }));
+  if (process.argv.includes('--hang')) {
+    setInterval(() => {}, 1000);
+    return;
+  }
+  if (process.argv.includes('--json')) {
+    console.log(JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: JSON.stringify({ shouldReply: false, answer: '', evidence: [] }) } }));
+    console.log(JSON.stringify({ type: 'turn.completed' }));
+  } else console.log('ok');
+});
+`,
+        'utf8',
+      );
+      await writeFile(shim, `@echo off\r\n"${process.execPath}" "%~dp0fixture.cjs" %*\r\n`, 'utf8');
+      process.env.PATH = bin + path.delimiter + (previousPath ?? '');
+      process.env.TEST_CODEX_CAPTURE = capture;
+      const prompt = '用户内容 $(不要执行) ; & 中文';
+      const args = [
+        'exec',
+        '--option',
+        'space & (中文)',
+        '-c',
+        'reasoning="high"',
+        'literal %PATH% and !variable!',
+        'quote "inside" and trailing \\',
+        '^&|<>',
+      ];
+      for (const command of ['codex', shim]) {
+        await runProcess(command, args, { ...input(), workspacePath: fixture, prompt }, 10000);
+        const captured = JSON.parse(await readFile(capture, 'utf8')) as {
+          args: string[];
+          prompt: string;
+        };
+        assert.deepEqual(captured.args, args);
+        assert.equal(captured.prompt, prompt);
+      }
+      const cli = new CodexCliExecutor('codex', 10000);
+      assert.equal(
+        (await cli.participate({ ...input(), workspacePath: fixture, prompt })).shouldReply,
+        false,
+      );
+      const captured = JSON.parse(await readFile(capture, 'utf8')) as {
+        args: string[];
+        prompt: string;
+      };
+      assert.ok(captured.args.includes('--output-schema'));
+      assert.ok(captured.args.includes('read-only'));
+      assert.equal(captured.prompt, prompt);
+
+      const abort = new AbortController();
+      const hanging = runProcess(
+        'codex',
+        ['--hang'],
+        { ...input(abort.signal), workspacePath: fixture, prompt },
+        10000,
+      ).then(
+        () => null,
+        (error: Error) => error,
+      );
+      let pid: number | undefined;
+      try {
+        for (let i = 0; i < 100 && !pid; i++) {
+          try {
+            const current = JSON.parse(await readFile(capture, 'utf8')) as {
+              args: string[];
+              pid: number;
+            };
+            if (current.args.includes('--hang')) pid = current.pid;
+          } catch (error) {
+            if (!(error instanceof SyntaxError)) throw error;
+          }
+          if (!pid) await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        assert.ok(pid, 'the shim child started');
+        abort.abort();
+        assert.match((await hanging)?.message ?? '', /执行已取消/);
+        let running = true;
+        for (let i = 0; i < 100 && running; i++) {
+          try {
+            process.kill(pid, 0);
+            await new Promise((resolve) => setTimeout(resolve, 50));
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
+            running = false;
+          }
+        }
+        assert.equal(running, false, 'cancellation also stops the shim child');
+      } finally {
+        abort.abort();
+        await hanging;
+      }
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+      if (previousCapture === undefined) delete process.env.TEST_CODEX_CAPTURE;
+      else process.env.TEST_CODEX_CAPTURE = previousCapture;
+      await rm(fixture, { recursive: true, force: true });
+    }
+  },
+);
 await test('production adapter selects sandbox and schema; no dangerous bypass', async () => {
   const fake = mock('success');
   const cli = new CodexCliExecutor('codex', 1000, fake.spawn);

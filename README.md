@@ -105,7 +105,7 @@ SQLite 使用 Prisma 7.10.0 + libSQL 本地文件适配器，无独立数据库�
 
 | 值              | 项目设备上的依赖和配置                                                                                                                                                    |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `codex`（默认） | 使用现有 Codex CLI、登录和默认模型。可用 `CODEX_COMMAND` 指定可执行文件。                                                                                                 |
+| `codex`（默认） | 使用现有 Codex CLI、登录和默认模型。可用 `CODEX_COMMAND` 指定可执行文件或 Windows `.cmd` 启动脚本。                                                                       |
 | `deepseek`      | 使用 Codex CLI 的工作区沙箱，通过 Responses API 请求设置的地址；在应用内设置 Key，或在启动环境设置 `DEEPSEEK_API_KEY`。可用 `DEEPSEEK_MODEL` 覆盖启动默认模型。           |
 | `dsh`           | 独立调用 DeepSeek Harness 的 headless CLI，需要全局安装 `@deepseek-api/dsh`，并配置 Key。可用 `DSH_COMMAND` 指定可执行文件的绝对路径。已用 Windows 版 `0.2.2-rc.1` 验证。 |
 
@@ -117,6 +117,8 @@ pnpm dev
 ```
 
 使用 DSH 时将值改为 `dsh`。DSH 每次调用使用独立的临时主目录和内置 headless 配置，结束后清理；个人 DSH 界面的登录和插件配置不参与调用。三种模式的项目列表均读取 `~/.codex/config.toml` 的 projects 表。项目设备会将该次任务上下文及 CLI 读取的相关项目内容交给所选模型服务。
+
+Windows 上支持从 PATH 调用全局安装的 `codex.exe` 或 `codex.cmd`，也可将 `CODEX_COMMAND` 设为其中一个文件的完整路径。安装 CLI 或更改 PATH 后，请从系统托盘选择“退出”，再重新启动 Egent，使其读取新的环境。启动失败时会显示系统错误码及相应排查提示；检查的安装、路径和登录状态均位于项目所属设备。
 
 ### 智能参与与只读问答
 
@@ -170,6 +172,8 @@ pnpm build
 ```
 
 `pnpm build` 会编译工作区、准备桌面应用、打包 Windows x64 产物，并校验两个 EXE 的图标。输出目录 `release/<版本>/` 和便携文件名都取自 `apps/desktop/package.json` 的 `version`。原命令 `pnpm desktop:package` 指向同一流程。只需编译工作区时使用 `pnpm build:packages`。
+
+桌面应用、健康接口和本机 MCP 服务使用同一个桌面包版本。构建后可运行 `pnpm desktop:verify-mcp`，通过隔离数据目录和模拟 CLI 验证打包程序、健康接口、MCP 的版本及聊天流程；也可在命令后指定便携启动器或解包版 EXE 的路径。
 
 - 打包包含 Electron 自带 Node 运行时、编译后的后端、前端、SQLite schema 及本地数据库依赖，不要求安装 PostgreSQL。
 - SQLite schema 位于 packages/database/prisma/sqlite/001-initial.sql，新增升级时需扩展版本化初始化，不能直接重置用户库。
@@ -226,4 +230,4 @@ release/
 
 多人会话与托盘行为验收见 [0.3.0 验证记录](docs/group-validation.md)。
 
-Codex 调用失败时会显示退出码和脱敏后的具体原因，优先读取 JSONL 的 error/turn.failed，兼容嵌套错误 JSON；版本、认证和额度问题附中文说明。此更新不升级 CLI、不覆盖用户默认模型。记录见 [CLI 错误提示修复](docs/codex-errors-validation.md)。
+Codex 启动失败时显示系统错误码及排查提示；仅将错误码写入日志，不公开启动命令及参数。CLI 启动后调用失败时会显示退出码和脱敏后的具体原因，优先读取 JSONL 的 error/turn.failed，兼容嵌套错误 JSON；版本、认证和额度问题附中文说明。只读问答或分析失败时不会显示实施回滚提示。此更新不升级 CLI、不覆盖用户默认模型。早期错误解析修复见 [CLI 错误提示修复](docs/codex-errors-validation.md)。
