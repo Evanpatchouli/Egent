@@ -195,7 +195,7 @@ pnpm build
 - 所有本机管理 API 必须提供 X-Egent-Local-Token；旧 identifier header 不授予权限。
 - UI 不再传递 X-Egent-Peer，后端根据会话记录决定项目设备。带本机令牌的 X-Egent-Peer 仍可用于开发排查指定设备 RPC，不会合并其他设备会话，也不携带远端 Owner 权限。
 - 网络对外：/peer/hello、/peer/connect、/peer/rpc。RPC 只接受已验证同事投递通知、允许的成员会话、多人创建/邀请、消息、开放项目及任务创建/补充/确认/查询/取消、智能参与开关，不暴露通知列表、文件读取和本机项目设置。
-- renderer 禁用 Node integration，开启 contextIsolation/sandbox，拒绝外部窗口/导航和权限请求；只加载本地页面。HTTP(S) 链接交给系统浏览器打开。
+- renderer 禁用 Node integration，开启 contextIsolation/sandbox，拒绝外部窗口/导航；只加载本地页面。仅允许本机主页面写入剪贴板，剪贴板读取及其他权限请求仍被拒绝。HTTP(S) 链接交给系统浏览器打开。
 
 ## 主要目录
 

@@ -44,7 +44,11 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
       this.webContents.setWindowOpenHandler = (handler) => {
         this.openWindow = handler;
       };
-      this.webContents.session = { setPermissionRequestHandler() {} };
+      this.webContents.session = {
+        setPermissionRequestHandler: (handler) => {
+          this.requestPermission = handler;
+        },
+      };
       windows.push(this);
     }
     isDestroyed() {
@@ -133,6 +137,17 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
   await new Promise((r) => setImmediate(r));
   assert.equal(windows.length, 1, 'startup window exists before the backend is ready');
   assert.equal(windows[0].options.backgroundColor, '#ffffff');
+  const permission = (contents, name, details) => {
+    let granted;
+    windows[0].requestPermission(contents, name, (value) => (granted = value), details);
+    return granted;
+  };
+  const localFrame = { isMainFrame: true, requestingUrl: 'http://127.0.0.1:43127/' };
+  assert.equal(
+    permission(windows[0].webContents, 'clipboard-sanitized-write', localFrame),
+    false,
+    'the splash screen cannot write to the clipboard',
+  );
   const releasePage = 'https://github.com/Evanpatchouli/Egent/releases/latest';
   for (const url of [releasePage + '/other', releasePage]) {
     assert.equal(windows[0].openWindow({ url }).action, 'deny');
@@ -146,6 +161,26 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
   assert.equal(windows.length, 1, 'reuse the splash window for the application');
   assert.equal(windows[0].visible, false, 'backend readiness must not reopen a hidden window');
   assert.match(windows[0].urls[0], /^http:\/\/127\.0\.0\.1:43127\/#token=/);
+  assert.equal(permission(windows[0].webContents, 'clipboard-sanitized-write', localFrame), true);
+  assert.equal(permission(windows[0].webContents, 'clipboard-read', localFrame), false);
+  assert.equal(permission(windows[0].webContents, 'geolocation', localFrame), false);
+  assert.equal(permission({}, 'clipboard-sanitized-write', localFrame), false);
+  assert.equal(
+    permission(windows[0].webContents, 'clipboard-sanitized-write', {
+      ...localFrame,
+      isMainFrame: false,
+    }),
+    false,
+  );
+  for (const requestingUrl of ['https://example.com/', 'http://127.0.0.1:43127.evil/', '']) {
+    assert.equal(
+      permission(windows[0].webContents, 'clipboard-sanitized-write', {
+        ...localFrame,
+        requestingUrl,
+      }),
+      false,
+    );
+  }
   backend.stdout.emit('data', Buffer.from('EGENT_READY {"url":"http://127.0.0.1:43127"}\n'));
   assert.equal(windows[0].urls.length, 1, 'load the application only once');
   const window = windows[0],

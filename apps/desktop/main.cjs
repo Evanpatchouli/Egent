@@ -155,8 +155,17 @@ else {
       window.webContents.on('will-navigate', (event, url) => {
         if (!runtimeUrl || !url.startsWith(runtimeUrl + '/')) event.preventDefault();
       });
-      window.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) =>
-        callback(false),
+      window.webContents.session.setPermissionRequestHandler(
+        (contents, permission, callback, details) => {
+          callback(
+            permission === 'clipboard-sanitized-write' &&
+              contents === window?.webContents &&
+              !!runtimeUrl &&
+              details.isMainFrame &&
+              typeof details.requestingUrl === 'string' &&
+              details.requestingUrl.startsWith(runtimeUrl + '/'),
+          );
+        },
       );
 
       window.on('close', (event) => {
