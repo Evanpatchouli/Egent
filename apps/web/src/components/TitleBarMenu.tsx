@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { Button, Dialog, Menu } from '@material-tailwind/react';
-import valid from 'semver/functions/valid';
-import gt from 'semver/functions/gt';
+import type { UpdateCheckResult } from '@egent/shared';
 import { version } from '../../../desktop/package.json';
+import { request } from '../api/client';
 
 const releasePage = 'https://github.com/Evanpatchouli/Egent/releases/latest';
 type UpdateProgress = { percent: number; retry?: { attempt: number; limit: number } };
@@ -54,39 +54,20 @@ export function TitleBarMenu() {
     if (pending.current) return;
     const controller = new AbortController();
     pending.current = controller;
-    const timeout = AbortSignal.timeout(15000);
     setPanel('update');
     setUpdate({ status: 'checking' });
     try {
-      const response = await fetch(
-        'https://api.github.com/repos/Evanpatchouli/Egent/releases/latest',
-        {
-          signal: AbortSignal.any([controller.signal, timeout]),
-          credentials: 'omit',
-          referrerPolicy: 'no-referrer',
-          cache: 'no-store',
-        },
-      );
-      if (response.status === 404) {
-        setUpdate({ status: 'empty' });
-        return;
-      }
-      if (!response.ok) throw new Error('GitHub 返回 HTTP ' + response.status + '，请稍后重试。');
-      const release = await response.json();
-      const latest = valid(release?.tag_name);
-      if (!latest) throw new Error('发行版标签缺少有效版本号。');
-      if (!controller.signal.aborted) {
-        setUpdate(
-          gt(latest, version) ? { status: 'available', version: latest } : { status: 'current' },
-        );
-      }
+      const result = await request<UpdateCheckResult>('/api/device/check-updates', {
+        method: 'POST',
+        signal: controller.signal,
+      });
+      if (!controller.signal.aborted) setUpdate(result);
     } catch (error) {
       if (!controller.signal.aborted) {
         setUpdate({
           status: 'error',
-          message: timeout.aborted
-            ? '连接 GitHub 超时，请重试。'
-            : error instanceof TypeError
+          message:
+            error instanceof TypeError
               ? '无法连接 GitHub，请检查网络后重试。'
               : error instanceof Error
                 ? error.message

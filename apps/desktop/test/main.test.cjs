@@ -160,9 +160,18 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
   window.hide();
   notifications[0].emit('click');
   assert.equal(window.visible, true);
+  backend.emit('message', { type: 'notification-received', title: '发布提醒', senderName: '小王' });
+  assert.equal(notifications[1].options.body, '小王：发布提醒');
+  backend.emit('message', {
+    type: 'notification-received',
+    title: '发现新版本 v1.0.0',
+    senderName: null,
+  });
+  assert.equal(notifications[2].options.body, '发现新版本 v1.0.0');
   backend.emit('message', { type: 'notification-settings', enabled: false });
   backend.emit('message', { type: 'mention', senderName: '小李' });
-  assert.equal(notifications.length, 1, 'disabled system notifications do not show a popup');
+  backend.emit('message', { type: 'notification-received', title: '静默', senderName: null });
+  assert.equal(notifications.length, 3, 'disabled system notifications do not show a popup');
   backend.emit('message', { type: 'mention-count', count: 0 });
   assert.match(tray.image, /icon\.ico$/);
   let prevented = false;

@@ -205,6 +205,23 @@ else {
             notification.show();
           }
         }
+        if (
+          message.type === 'notification-received' &&
+          systemNotifications &&
+          typeof message.title === 'string' &&
+          (message.senderName === null || typeof message.senderName === 'string') &&
+          Notification.isSupported()
+        ) {
+          const notification = new Notification({
+            title: 'Egent',
+            body: message.senderName ? `${message.senderName}：${message.title}` : message.title,
+            icon: path.join(root, 'icon.png'),
+          });
+          notifications.add(notification);
+          notification.once('close', () => notifications.delete(notification));
+          notification.on('click', showWindow);
+          notification.show();
+        }
       });
       let output = '';
       const readyTimer = setTimeout(() => {

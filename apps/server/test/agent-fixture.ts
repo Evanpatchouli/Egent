@@ -70,7 +70,7 @@ await agent.start();
 device.startSync();
 http.listen(port, '127.0.0.1', () => console.log('AGENT_FIXTURE_READY ' + port));
 const stop = async () => {
-  device.stop();
+  await device.stop();
   await agent.stop();
   io.close();
   await prisma.$disconnect();

@@ -83,6 +83,10 @@ await cp(
   'packages/database/prisma/sqlite/006-mention-alerts.sql',
   path.join(staging, '006-mention-alerts.sql'),
 );
+await cp(
+  'packages/database/prisma/sqlite/007-notifications.sql',
+  path.join(staging, '007-notifications.sql'),
+);
 await writeFile(
   path.join(staging, 'package.json'),
   JSON.stringify({

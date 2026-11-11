@@ -11,4 +11,6 @@ export const chatEvents = new EventEmitter<{
   mention: [{ conversationId: string; senderName: string }];
   mentionCount: [number];
   systemNotifications: [boolean];
+  notificationsChanged: [];
+  notificationReceived: [{ title: string; senderName: string | null }];
 }>();

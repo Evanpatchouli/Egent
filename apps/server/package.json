@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "start": "node dist/server.js",
     "test:smoke": "tsx --test test/smoke.test.ts",
-    "test": "tsx --test --test-timeout=60000 --test-concurrency=1 test/smoke.test.ts test/codex-executor.test.ts test/deepseek-settings.test.ts test/mentions.test.ts test/sqlite.test.ts test/desktop.test.ts test/groups.test.ts test/explicit-agent.test.ts test/participation.test.ts"
+    "test": "tsx --test --test-timeout=60000 --test-concurrency=1 test/smoke.test.ts test/codex-executor.test.ts test/deepseek-settings.test.ts test/mentions.test.ts test/sqlite.test.ts test/desktop.test.ts test/groups.test.ts test/explicit-agent.test.ts test/participation.test.ts test/notifications.test.ts test/update-checker.test.ts"
   },
   "dependencies": {
     "@egent/database": "workspace:*",
@@ -20,6 +20,7 @@
     "cross-spawn": "7.0.6",
     "dotenv": "17.4.2",
     "koa": "3.2.1",
+    "semver": "7.8.5",
     "smol-toml": "1.8.0",
     "socket.io": "4.8.3"
   },
@@ -27,6 +28,7 @@
     "@types/cross-spawn": "6.0.6",
     "@types/koa": "3.0.3",
     "@types/koa__cors": "5.0.1",
+    "@types/semver": "7.8.0",
     "socket.io-client": "4.8.3",
     "tsx": "4.23.13"
   }

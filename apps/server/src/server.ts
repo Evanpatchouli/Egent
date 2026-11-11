@@ -38,6 +38,9 @@ parent?.postMessage({
 parent?.postMessage({ type: 'mention-count', count: await mentionCounts() });
 chatEvents.on('mention', (data) => parent?.postMessage({ type: 'mention', ...data }));
 chatEvents.on('mentionCount', (count) => parent?.postMessage({ type: 'mention-count', count }));
+chatEvents.on('notificationReceived', (data) =>
+  parent?.postMessage({ type: 'notification-received', ...data }),
+);
 chatEvents.on('systemNotifications', (enabled) =>
   parent?.postMessage({ type: 'notification-settings', enabled }),
 );
@@ -69,7 +72,7 @@ let stopping = false;
 async function shutdown(code = 0) {
   if (stopping) return;
   stopping = true;
-  device.stop();
+  await device.stop();
   await new Promise<void>((resolve) => io.close(() => resolve()));
   await agent.stop();
   await prisma.$disconnect();
@@ -83,6 +86,7 @@ httpServer.on('error', (error) => {
 });
 if (process.env.EGENT_TEST_MODE !== '1') await agent.start();
 device.startSync();
+if (process.env.EGENT_TEST_MODE !== '1') device.updates.start();
 httpServer.listen(serverConfig.port, serverConfig.host, async () => {
   const runtime = {
     url: 'http://127.0.0.1:' + serverConfig.port,

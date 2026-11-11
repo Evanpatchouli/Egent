@@ -31,6 +31,7 @@ export async function initializeDatabase() {
       path.join(path.dirname(initial), '004-agent-model-settings.sql'),
       path.join(path.dirname(initial), '005-hidden-conversations.sql'),
       path.join(path.dirname(initial), '006-mention-alerts.sql'),
+      path.join(path.dirname(initial), '007-notifications.sql'),
     ];
     for (const [index, file] of migrations.entries()) {
       const version = index + 1;

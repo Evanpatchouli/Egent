@@ -21,11 +21,15 @@ import { chatEvents } from '../services/chat-events.js';
 import { readModelSettings, writeModelSettings } from '../agent/model-settings.js';
 import { deepSeekStatus, writeDeepSeekSettings } from '../agent/deepseek-settings.js';
 import { dismissMentions, markMentionsRead, recordMention } from './mentions.js';
+import { NotificationService } from './notifications.js';
+import { UpdateChecker } from './updates.js';
 
 /** Device-local control and the limited peer data plane are separate trust boundaries. */
 export class DeviceService {
   peers: PeerService;
   groups: GroupService;
+  notifications: NotificationService;
+  updates = new UpdateChecker();
   private retryAt = new Map<string, number>();
   private syncJobs = new Map<string, Promise<void>>();
   private syncing = false;
@@ -52,10 +56,13 @@ export class DeviceService {
     this.peers = new PeerService(identity, (user, method, path, body) =>
       this.dispatch(user, method, path, body),
     );
+    this.notifications = new NotificationService(identity.deviceId, this.peers);
   }
   async dispatch(user: UserInfo, method: string, path: string, body: unknown): Promise<unknown> {
     const url = new URL(path, 'http://peer');
     const route = url.pathname;
+    if (method === 'POST' && route === '/api/notifications/deliver')
+      return this.notifications.receive(user, body);
     const model = route.match(/^\/api\/conversations\/([a-f0-9-]{36})\/agent-model$/i);
     if (model && method === 'PUT') return setConversationModel(user, model[1]!, body);
     if (method === 'POST' && route === '/api/groups') return this.groups.create(user, body);
@@ -141,6 +148,12 @@ export class DeviceService {
     if (me) await recordMention(message, me, this.readWatermarks.get(message.conversationId));
   }
   private async syncNow(peerId: string) {
+    try {
+      await this.notifications.deliver(peerId);
+    } catch (error) {
+      // Older peers may not support notifications; their chat sync must still continue.
+      if (error instanceof ApiError && error.code === 'PEER_OFFLINE') throw error;
+    }
     const conversations = (await this.peers.request(
       peerId,
       'GET',
@@ -459,9 +472,10 @@ export class DeviceService {
     }
     return result;
   }
-  stop() {
+  async stop() {
     clearInterval(this.timer);
     chatEvents.off('message', this.onMessage);
+    await this.updates.stop();
   }
   router() {
     const router = new Router();
@@ -513,6 +527,25 @@ export class DeviceService {
     router.get('/api/device/notification-settings', async (ctx) => {
       const preference = await prisma.devicePreference.findUnique({ where: { id: 'local' } });
       ctx.body = { systemNotifications: preference?.systemNotifications ?? true };
+    });
+    router.get('/api/notifications', async (ctx) => {
+      ctx.body = await this.notifications.list();
+    });
+    router.post('/api/notifications', async (ctx) => {
+      const me = await localUser(this.identity);
+      if (!me) throw new ApiError(401, 'LOCAL_IDENTITY', '请设置昵称');
+      const result = await this.notifications.create(me, ctx.request.body);
+      ctx.body = result;
+      const recipients = (ctx.request.body as { recipientIds: string[] }).recipientIds;
+      for (const id of recipients) {
+        if (this.peers.outgoing.has(id)) void this.sync(id).catch(() => {});
+      }
+    });
+    router.post('/api/notifications/:id/read', async (ctx) => {
+      ctx.body = await this.notifications.markRead(ctx.params.id!);
+    });
+    router.post('/api/device/check-updates', async (ctx) => {
+      ctx.body = await this.updates.check();
     });
     router.put('/api/device/notification-settings', async (ctx) => {
       const body = ctx.request.body as { systemNotifications?: unknown };

@@ -60,6 +60,8 @@ export function bridgeWorkspace(
   chatEvents.on('conversation', notify);
   chatEvents.on('read', notify);
   chatEvents.on('agent', notify);
+  const notificationsChanged = () => socket.emit('notification:updated');
+  chatEvents.on('notificationsChanged', notificationsChanged);
   socket.on('conversation:join', (data, ack) => {
     membership = membership.then(async () => {
       try {
@@ -114,5 +116,6 @@ export function bridgeWorkspace(
     chatEvents.off('conversation', notify);
     chatEvents.off('read', notify);
     chatEvents.off('agent', notify);
+    chatEvents.off('notificationsChanged', notificationsChanged);
   });
 }

@@ -7,6 +7,7 @@ export * from './api.js';
 export * from './chat.js';
 export * from './agent.js';
 export * from './agent-model.js';
+export * from './notifications.js';
 import type { AgentTaskInfo } from './agent.js';
 import type {
   ChatAck,
@@ -49,6 +50,7 @@ export interface ServerToClientEvents {
   'message:new': (message: MessageInfo) => void;
   'message:error': (error: ChatError) => void;
   'conversation:updated': (data: { conversationId: string }) => void;
+  'notification:updated': () => void;
   'typing:start': (data: TypingInfo) => void;
   'typing:stop': (data: TypingInfo) => void;
 }

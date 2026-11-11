@@ -48,6 +48,31 @@ model MentionAlert {
   @@index([conversationId, read, createdAt])
 }
 
+model Notification {
+  id            String   @id
+  kind          String
+  senderId      String?
+  senderName    String?
+  title         String
+  content       String
+  createdAt     DateTime @default(now())
+  read          Boolean  @default(false)
+  updateVersion String?  @unique
+  deliveries    NotificationDelivery[]
+
+  @@index([createdAt, id])
+}
+
+model NotificationDelivery {
+  notificationId String
+  peerId         String
+  deliveredAt    DateTime?
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@id([notificationId, peerId])
+  @@index([peerId, deliveredAt])
+}
+
 model DevicePreference {
   id String @id
   systemNotifications Boolean @default(true)

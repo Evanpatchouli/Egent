@@ -331,7 +331,7 @@ try {
       await device.sync(peerId);
       assert.equal(backfills, 2);
     } finally {
-      device.stop();
+      await device.stop();
     }
   });
 } finally {

@@ -10,6 +10,7 @@ import { ConversationSidebar } from './ConversationSidebar';
 import { ConnectDialog } from '../ConnectDialog';
 import { ColleagueList } from '../ColleagueList';
 import { ConversationView } from './ConversationView';
+import { NotificationCenter } from '../NotificationCenter';
 
 /** Simplified chat workspace around the existing P2 identity and project settings. */
 export function ChatShell({
@@ -123,6 +124,7 @@ export function ChatShell({
           <TitleBarMenu />
         </div>
         <div className="identity-label">
+          <NotificationCenter connection={connection} />
           <Avatar
             as="span"
             size="sm"
