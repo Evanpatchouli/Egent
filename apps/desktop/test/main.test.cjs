@@ -150,6 +150,32 @@ test('window close keeps backend alive; tray restores window and Exit shuts down
   assert.equal(windows[0].urls.length, 1, 'load the application only once');
   const window = windows[0],
     tray = trays[0];
+  for (const url of [
+    'https://example.com/docs',
+    'http://example.com/docs',
+    'javascript:alert(1)',
+    'file:///C:/test.txt',
+    'mailto:test@example.com',
+    'https://',
+  ]) {
+    assert.equal(window.openWindow({ url }).action, 'deny', 'never create an Electron window');
+  }
+  assert.deepEqual(openedUrls, [
+    releasePage,
+    'https://example.com/docs',
+    'http://example.com/docs',
+  ]);
+  let navigationPrevented = false;
+  window.webContents.emit(
+    'will-navigate',
+    {
+      preventDefault() {
+        navigationPrevented = true;
+      },
+    },
+    'https://example.com/docs',
+  );
+  assert.equal(navigationPrevented, true, 'external links cannot navigate the app window');
   backend.emit('message', { type: 'mention-count', count: 2 });
   assert.match(tray.image, /tray-mention\.png$/);
   assert.match(tray.tooltip, /2 条未读/);

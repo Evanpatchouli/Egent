@@ -11,6 +11,7 @@ const {
   Notification,
 } = require('electron');
 const path = require('node:path');
+const { URL } = require('node:url');
 const { randomBytes } = require('node:crypto');
 const fs = require('node:fs');
 let backend;
@@ -134,7 +135,17 @@ else {
         });
       }
       window.webContents.setWindowOpenHandler(({ url }) => {
-        if (url === 'https://github.com/Evanpatchouli/Egent/releases/latest') {
+        let webLink = false;
+        try {
+          const parsed = new URL(url);
+          webLink = parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        } catch {
+          // Invalid URLs are denied along with non-web protocols.
+        }
+        if (
+          webLink &&
+          (runtimeUrl || url === 'https://github.com/Evanpatchouli/Egent/releases/latest')
+        ) {
           void shell
             .openExternal(url)
             .catch(() => dialog.showErrorBox('打开失败', '无法打开系统浏览器。'));

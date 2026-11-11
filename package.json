@@ -25,7 +25,7 @@
     "db:validate": "pnpm --filter @egent/database validate",
     "db:check": "pnpm --filter @egent/database check",
     "db:migrate": "pnpm --filter @egent/database migrate",
-    "test": "pnpm prepare:packages && pnpm --filter @egent/server build && pnpm --filter @egent/server test && node --test apps/desktop/test/*.test.cjs",
+    "test": "pnpm prepare:packages && pnpm --filter @egent/server build && pnpm --filter @egent/server test && node --test apps/desktop/test/*.test.cjs apps/web/test/*.test.ts",
     "test:codex:real": "pnpm --filter @egent/server exec tsx test/codex-real.ts",
     "start:server": "pnpm --filter @egent/server start",
     "test:smoke": "pnpm --filter @egent/shared build && pnpm --filter @egent/server test:smoke"

@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import { useState } from 'react';
 import { Button } from '@material-tailwind/react';
-import type { UserInfo } from '@egent/shared';
+import type { MessageInfo, UserInfo } from '@egent/shared';
 import { SettingsPage } from '../src/components/SettingsPage';
 import { ConversationSidebar } from '../src/components/chat/ConversationSidebar';
 import { Composer } from '../src/components/chat/Composer';
@@ -38,6 +38,7 @@ function Fixture() {
   const [user, setUser] = useState(initial),
     [settings, setSettings] = useState(false),
     [refreshes, setRefreshes] = useState(0),
+    [sentMessages, setSentMessages] = useState<MessageInfo[]>([]),
     [ownMessagesRight, setOwnMessagesRight] = useState(
       () => localStorage.getItem('egent.ownMessagesRight') !== 'false',
     );
@@ -102,7 +103,7 @@ function Fixture() {
                 senderType: 'USER',
                 sender: { id: 'other', name: '同事', role: 'COLLEAGUE' },
                 isTaskCreation: true,
-                content: '请完善测试。',
+                content: '请完善 **测试**。\n- 覆盖回归',
                 createdAt: '2026-09-16T00:02:00Z',
               },
               {
@@ -125,6 +126,58 @@ function Fixture() {
                 content: '[补充方案 v1] 增加验收条件',
                 createdAt: '2026-09-16T00:04:00Z',
               },
+              {
+                id: 'own-markdown',
+                conversationId: 'test',
+                clientMessageId: null,
+                senderType: 'USER',
+                sender: { id: user.id, name: user.name, role: user.role },
+                content: '我的 **重点**\n下一行',
+                createdAt: '2026-09-16T00:05:00Z',
+              },
+              {
+                id: 'agent-markdown',
+                conversationId: 'test',
+                clientMessageId: null,
+                senderType: 'AGENT',
+                sender: null,
+                content: [
+                  '## 实施说明',
+                  '第一行\n第二行',
+                  '',
+                  '- **粗体**、*斜体*和 ~~删除线~~',
+                  '- [x] 已完成',
+                  '- [安全链接](https://example.com/docs)',
+                  '- [不安全链接](javascript:alert(1))',
+                  '- ![预览](https://example.com/pixel.png)',
+                  '- [![图标](https://example.com/icon.png)](https://example.com/destination)',
+                  '',
+                  '> 重要提示',
+                  '',
+                  '| 项目 | 状态 |',
+                  '| --- | --- |',
+                  '| 测试 | 完成 |',
+                  '',
+                  '`行内代码`',
+                  '',
+                  '```js',
+                  'const longLine = "' + 'x'.repeat(200) + '";',
+                  '```',
+                  '',
+                  '<img src=x onerror=alert(1)>',
+                ].join('\n'),
+                createdAt: '2026-09-16T00:06:00Z',
+              },
+              {
+                id: 'system-markdown',
+                conversationId: 'test',
+                clientMessageId: null,
+                senderType: 'SYSTEM',
+                sender: null,
+                content: '系统 **提示**',
+                createdAt: '2026-09-16T00:07:00Z',
+              },
+              ...sentMessages,
             ]}
             user={user}
             ownMessagesRight={ownMessagesRight}
@@ -135,7 +188,25 @@ function Fixture() {
             onMention={() => {}}
             mentionDisabled={false}
           />
-          <Composer disabled={false} members={[]} onSend={() => {}} onTyping={() => {}} />
+          <Composer
+            disabled={false}
+            members={[]}
+            onSend={(content) =>
+              setSentMessages((messages) => [
+                ...messages,
+                {
+                  id: `sent-${messages.length}`,
+                  conversationId: 'test',
+                  clientMessageId: null,
+                  senderType: 'USER',
+                  sender: { id: user.id, name: user.name, role: user.role },
+                  content,
+                  createdAt: new Date().toISOString(),
+                },
+              ])
+            }
+            onTyping={() => {}}
+          />
         </main>
       </div>
       {settings && (

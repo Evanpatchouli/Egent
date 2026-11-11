@@ -1,7 +1,11 @@
 import { Button, Avatar } from '@material-tailwind/react';
-import { useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { MessageInfo, UserInfo } from '@egent/shared';
-/** Render plain text and explicit sender identity; no HTML or Markdown interpretation. */
+import { MessageCopyButton } from './MessageCopyButton';
+import { MessageMarkdown } from './MessageMarkdown';
+import { formatMessageTime } from './messageTime';
+
+/** Render messages with explicit sender identity and safe Markdown. */
 export function MessageList({
   messages,
   user,
@@ -27,6 +31,23 @@ export function MessageList({
   const nearBottom = useRef(true);
   const previousLast = useRef<string | undefined>(undefined);
   const prepend = useRef<{ height: number; top: number } | null>(null);
+  const [today, setToday] = useState(() => new Date());
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const refresh = () => {
+      clearTimeout(timer);
+      const now = new Date();
+      setToday(now);
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      timer = setTimeout(refresh, midnight.getTime() - now.getTime() + 10);
+    };
+    refresh();
+    window.addEventListener('focus', refresh);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, []);
   useLayoutEffect(() => {
     const node = container.current;
     if (!node) return;
@@ -152,10 +173,7 @@ export function MessageList({
                     </span>
                   )}
                   <time dateTime={message.createdAt}>
-                    {new Date(message.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatMessageTime(message.createdAt, today)}
                   </time>
                 </div>
                 {message.isTaskCreation ? (
@@ -177,11 +195,12 @@ export function MessageList({
                       </svg>
                       <span>创建了一项任务</span>
                     </div>
-                    <p>{message.content}</p>
+                    <MessageMarkdown text={message.content} />
                   </div>
                 ) : (
-                  <p>{message.content}</p>
+                  <MessageMarkdown text={message.content} />
                 )}
+                <MessageCopyButton content={message.content} />
               </div>
             </article>
           );
