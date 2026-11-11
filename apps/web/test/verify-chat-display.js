@@ -166,22 +166,100 @@ async (page) => {
     await ownMessage.getByRole('button', { name: '已复制消息' }).isVisible(),
     'copy success must be visible',
   );
+  const ownAfter = await ownMessage.locator('.message-copy').boundingBox();
+  const ownBodyAfter = await ownMessage.locator('.message-body').boundingBox();
+  check(
+    Math.abs(ownAfter.y - ownBodyAfter.y - ownBodyAfter.height - 2) < 1,
+    'copying an own message must keep its button directly below the content',
+  );
+  const agentMessage = page.locator('[data-message-id="agent-markdown"]');
+  const copyLayout = (row) =>
+    row.evaluate((element) => {
+      const body = element.querySelector('.message-body').getBoundingClientRect();
+      const button = element.querySelector('.message-copy').getBoundingClientRect();
+      return {
+        rowHeight: element.getBoundingClientRect().height,
+        bodyHeight: body.height,
+        gap: button.top - body.bottom,
+      };
+    });
+  await agentMessage.hover();
+  const agentBefore = await copyLayout(agentMessage);
+  await agentMessage.locator('.message-copy').evaluate((button) => {
+    window.copyRippleCount = 0;
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node instanceof HTMLElement && node.classList.contains('ripple')) {
+            window.copyRippleCount++;
+          }
+        }
+      }
+    });
+    observer.observe(button, { childList: true });
+  });
+  await agentMessage.getByRole('button', { name: '复制消息' }).click();
+  check((await page.evaluate(() => window.copyRippleCount)) > 0, 'copy must retain its ripple');
+  const agentAfter = await copyLayout(agentMessage);
+  check(
+    Math.abs(agentAfter.gap - agentBefore.gap) < 1 &&
+      Math.abs(agentAfter.bodyHeight - agentBefore.bodyHeight) < 1 &&
+      Math.abs(agentAfter.rowHeight - agentBefore.rowHeight) < 1,
+    'copying a long message must not create a blank gap or change its height',
+  );
+  await page.waitForFunction(
+    () => !document.querySelector('[data-message-id="agent-markdown"] .message-copy .ripple'),
+  );
+  const agentSettled = await copyLayout(agentMessage);
+  check(
+    Math.abs(agentSettled.gap - agentBefore.gap) < 1 &&
+      Math.abs(agentSettled.rowHeight - agentBefore.rowHeight) < 1,
+    'the copy button must stay below the message after the ripple ends',
+  );
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector('[data-message-id="agent-markdown"] .message-copy')
+        .getAttribute('aria-label') === '复制消息',
+  );
+  const agentReset = await copyLayout(agentMessage);
+  check(
+    Math.abs(agentReset.gap - agentBefore.gap) < 1 &&
+      Math.abs(agentReset.rowHeight - agentBefore.rowHeight) < 1,
+    'the message layout must remain stable after the success feedback resets',
+  );
+  await agentMessage.hover();
+  await agentMessage.getByRole('button', { name: '复制消息' }).click();
+  check(
+    Math.abs((await copyLayout(agentMessage)).gap - agentBefore.gap) < 1,
+    'repeated copies must not create a blank gap',
+  );
   const taskMessage = page.locator('[data-message-id="other-task"]');
   await taskMessage.hover();
+  const taskBefore = await copyLayout(taskMessage);
   await taskMessage.getByRole('button', { name: '复制消息' }).click();
   check(
     (await page.evaluate(() => window.testCopiedMessage)) === '请完善 **测试**。\n- 覆盖回归',
     'task copy must preserve the original content',
+  );
+  check(
+    Math.abs((await copyLayout(taskMessage)).gap - taskBefore.gap) < 1,
+    'copying a task message must not create a blank gap',
   );
   await page.evaluate(() => {
     window.testCopyFails = true;
   });
   const systemMessage = page.locator('[data-message-id="system-markdown"]');
   await systemMessage.hover();
+  const systemBefore = await copyLayout(systemMessage);
   await systemMessage.getByRole('button', { name: '复制消息' }).click();
   check(
     await systemMessage.getByRole('button', { name: '复制失败消息' }).isVisible(),
     'copy failure must be visible',
+  );
+  check(
+    Math.abs((await copyLayout(systemMessage)).gap - systemBefore.gap) < 1,
+    'a failed copy must not create a blank gap',
   );
   await page.waitForFunction(
     () =>

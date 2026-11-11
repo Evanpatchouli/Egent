@@ -968,10 +968,13 @@ body {
   flex: 1;
   padding-top: 1px;
 }
-.message-copy {
+.message-copy-anchor {
   position: absolute;
   top: calc(100% + 2px);
   left: 0;
+  display: flex;
+}
+.message-copy {
   display: inline-flex;
   align-items: center;
   gap: 4px;
