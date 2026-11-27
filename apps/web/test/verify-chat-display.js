@@ -24,7 +24,10 @@ async (page) => {
   await input.press('Enter');
   check((await input.inputValue()) === '@小明 ', 'keyboard selection must still work');
   await page.goto('/test/settings.html');
-  await page.evaluate(() => localStorage.removeItem('egent.ownMessagesRight'));
+  await page.evaluate(() => {
+    localStorage.removeItem('egent.ownMessagesRight');
+    localStorage.removeItem('egent.markdownTheme');
+  });
   await page.reload();
   check(
     await page
@@ -283,6 +286,28 @@ async (page) => {
     'keyboard activation must copy the message',
   );
   await page.getByRole('button', { name: '设置', exact: true }).click();
+  await page.getByRole('button', { name: '外观样式' }).click();
+  const preview = page.getByRole('region', { name: '消息预览' });
+  const headingColor = (element) =>
+    element.locator('h2').evaluate((node) => getComputedStyle(node).color);
+  const themeColors = new Set();
+  for (const [name, id] of [
+    ['GitHub 明亮', 'github'],
+    ['经典', 'classic'],
+    ['夜航', 'midnight'],
+    ['纸页', 'paper'],
+  ]) {
+    const option = page.getByRole('radio', { name, exact: true });
+    if (id === 'github') check(await option.isChecked(), 'GitHub theme must be the initial choice');
+    await option.check();
+    check(
+      (await preview.getAttribute('data-markdown-theme')) === id,
+      'preview must follow the selection',
+    );
+    themeColors.add(await headingColor(preview));
+  }
+  check(themeColors.size === 4, 'the four theme previews must have distinct heading colors');
+  const paperHeading = await headingColor(preview);
   await page.getByRole('button', { name: '全局设置' }).click();
   const toggle = page.getByRole('switch', { name: '我的消息显示在右侧' });
   check(await toggle.isChecked(), 'switch must default to on');
@@ -304,7 +329,9 @@ async (page) => {
       .evaluate((node) => node.classList.contains('own-message'))),
     'task creation must follow the own-message alignment setting',
   );
+  check((await headingColor(markdown)) === paperHeading, 'history must use the previewed theme');
   await page.reload();
+  check((await headingColor(markdown)) === paperHeading, 'theme must survive reload');
   check(
     !(await page
       .locator('[data-message-id="own"]')

@@ -1,3 +1,5 @@
+@import './markdown-themes.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -2193,7 +2195,7 @@ body {
   padding-bottom: 24px;
   margin-bottom: 28px;
 }
-.settings-content h2 {
+.settings-content > header h2 {
   font-size: 24px;
   font-weight: 600;
   outline: none;

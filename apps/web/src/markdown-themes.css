@@ -1,0 +1,193 @@
+[data-markdown-theme='github'] {
+  --md-surface: #fff;
+  --md-text: #24292f;
+  --md-heading: #1f2328;
+  --md-muted: #59636e;
+  --md-accent: #0969da;
+  --md-border: #d1d9e0;
+  --md-inset: #f6f8fa;
+  --md-code-text: #343d49;
+  --md-code-fill: #eff1f3;
+  --md-pre-fill: #f6f8fa;
+}
+
+[data-markdown-theme='paper'] {
+  --md-surface: #fcf8ef;
+  --md-text: #443c32;
+  --md-heading: #553e2d;
+  --md-muted: #69594a;
+  --md-accent: #99502f;
+  --md-border: #dfd3be;
+  --md-inset: #f5eddf;
+  --md-code-text: #7d472d;
+  --md-code-fill: #f0e5d4;
+  --md-pre-fill: #f5eddf;
+}
+
+[data-markdown-theme='midnight'] {
+  --md-surface: #1d2a3c;
+  --md-text: #dce6f2;
+  --md-heading: #f1f6fc;
+  --md-muted: #b4c6d6;
+  --md-accent: #8bd9d0;
+  --md-border: #425369;
+  --md-inset: #26364a;
+  --md-code-text: #f3c6d9;
+  --md-code-fill: #363448;
+  --md-pre-fill: #141e2d;
+}
+
+:is(
+  [data-markdown-theme='github'],
+  [data-markdown-theme='paper'],
+  [data-markdown-theme='midnight']
+) {
+  .message-markdown,
+  .task-creation-content {
+    padding: 0.7em 1em;
+    border: 1px solid var(--md-border);
+    border-radius: 9px;
+    background: var(--md-surface);
+  }
+
+  .message-markdown {
+    min-width: 0;
+    max-width: 100%;
+    color: var(--md-text);
+    line-height: 1.75;
+    text-align: start;
+  }
+
+  .message-row .message-markdown {
+    width: fit-content;
+  }
+
+  .own-message .message-markdown {
+    margin-inline-start: auto;
+  }
+
+  .system-message .message-markdown {
+    color: var(--md-muted);
+  }
+
+  .task-creation-content {
+    border-inline-start: 3px solid var(--md-accent);
+  }
+
+  .task-creation-label {
+    color: var(--md-accent);
+  }
+
+  .task-creation-content .message-markdown {
+    width: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .message-markdown {
+    :is(h1, h2, h3, h4, h5, h6) {
+      color: var(--md-heading);
+      font-weight: 650;
+      line-height: 1.45;
+    }
+
+    h1 {
+      font-size: 1.55em;
+    }
+
+    h2 {
+      font-size: 1.3em;
+    }
+
+    * + :is(h1, h2, h3) {
+      margin-top: 1.1em;
+    }
+
+    li + li,
+    li > p + p,
+    blockquote > * + * {
+      margin-top: 0.3em;
+    }
+
+    li::marker {
+      color: var(--md-accent);
+    }
+
+    .task-list-item input {
+      accent-color: var(--md-accent);
+    }
+
+    a {
+      color: var(--md-accent);
+      text-underline-offset: 0.17em;
+    }
+
+    a:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+
+    blockquote {
+      padding: 0.2em 0.85em;
+      border-color: var(--md-border);
+      color: var(--md-muted);
+    }
+
+    :not(pre) > code {
+      background: var(--md-code-fill);
+      color: var(--md-code-text);
+    }
+
+    pre {
+      padding: 0.75em 1em;
+      border: 1px solid var(--md-border);
+      border-radius: 6px;
+      background: var(--md-pre-fill);
+      color: var(--md-text);
+      tab-size: 4;
+    }
+
+    table {
+      line-height: 1.6;
+      overflow-wrap: normal;
+    }
+
+    :is(th, td, hr) {
+      border-color: var(--md-border);
+    }
+
+    th,
+    tbody tr:nth-child(even) {
+      background: var(--md-inset);
+    }
+  }
+}
+
+[data-markdown-theme='github'] .message-markdown :is(h1, h2) {
+  padding-bottom: 0.23em;
+  border-bottom: 1px solid var(--md-border);
+}
+
+[data-markdown-theme='paper'] .message-markdown {
+  line-height: 1.9;
+
+  :is(h1, h2, h3, h4, h5, h6) {
+    font-family: Georgia, 'Noto Serif CJK SC', 'Songti SC', SimSun, serif;
+    font-weight: 700;
+  }
+
+  blockquote {
+    padding-block: 0.45em;
+    border-color: var(--md-accent);
+    background: var(--md-inset);
+  }
+}
+
+[data-markdown-theme='midnight'] .message-markdown {
+  color-scheme: dark;
+
+  blockquote {
+    border-color: var(--md-accent);
+  }
+}

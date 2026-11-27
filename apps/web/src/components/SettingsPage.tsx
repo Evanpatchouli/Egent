@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 import type { UserInfo } from '@egent/shared';
 import type { ChatConnection } from '../hooks/useChatConnection';
 import { useHealth } from '../hooks/useHealth';
+import type { MarkdownTheme } from '../hooks/useMarkdownTheme';
 import { request } from '../api/client';
 import { ProjectPanel } from './ProjectPanel';
 import { GlobalAgentModelSettings } from './AgentModelSettings';
+import { MarkdownThemeSettings } from './MarkdownThemeSettings';
 
 const sections = [
   {
@@ -13,6 +15,12 @@ const sections = [
     title: '全局设置',
     description: '调整这台设备上的聊天显示方式。',
     icon: 'M4 7h16M4 17h16M8 4v6m8 4v6',
+  },
+  {
+    id: 'appearance',
+    title: '外观样式',
+    description: '选择这台设备上所有会话的 Markdown 阅读主题。',
+    icon: 'M3 4h18v16H3zM3 9h18M8 13h8m-8 3h5',
   },
   {
     id: 'nickname',
@@ -43,6 +51,8 @@ export function SettingsPage({
   user,
   ownMessagesRight,
   onOwnMessagesRightChange,
+  markdownTheme,
+  onMarkdownThemeChange,
   connection,
   onUserChange,
   onBack,
@@ -50,6 +60,8 @@ export function SettingsPage({
   user: UserInfo;
   ownMessagesRight: boolean;
   onOwnMessagesRightChange: (value: boolean) => void;
+  markdownTheme: MarkdownTheme;
+  onMarkdownThemeChange: (theme: MarkdownTheme) => void;
   connection: ChatConnection;
   onUserChange: (user: UserInfo) => void;
   onBack: () => void;
@@ -126,6 +138,9 @@ export function SettingsPage({
               </div>
               <SystemNotificationSettings />
             </div>
+          )}
+          {selected === 'appearance' && (
+            <MarkdownThemeSettings theme={markdownTheme} onChange={onMarkdownThemeChange} />
           )}
           {selected === 'projects' && user.role === 'OWNER' && <ProjectPanel user={user} />}
           {selected === 'model' && user.role === 'OWNER' && <GlobalAgentModelSettings />}

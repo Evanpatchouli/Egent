@@ -3,6 +3,7 @@ import { Button, Avatar, Dialog } from '@material-tailwind/react';
 import type { ConversationInfo, UserInfo } from '@egent/shared';
 import { request } from '../../api/client';
 import { useChatConnection } from '../../hooks/useChatConnection';
+import { useMarkdownTheme } from '../../hooks/useMarkdownTheme';
 import { useOutbox } from '../../hooks/useOutbox';
 import { SettingsPage } from '../SettingsPage';
 import { TitleBarMenu } from '../TitleBarMenu';
@@ -30,6 +31,7 @@ export function ChatShell({
   const [removeBusy, setRemoveBusy] = useState(false);
   const [removeError, setRemoveError] = useState('');
   const [settings, setSettings] = useState(false);
+  const [markdownTheme, setMarkdownTheme] = useMarkdownTheme();
   const [ownMessagesRight, setOwnMessagesRight] = useState(
     () => localStorage.getItem('egent.ownMessagesRight') !== 'false',
   );
@@ -185,7 +187,7 @@ export function ChatShell({
             </Button>
           </div>
         </aside>
-        <main className="chat-main">
+        <main className="chat-main" data-markdown-theme={markdownTheme}>
           {error && (
             <div role="alert" className="chat-error">
               {error}{' '}
@@ -227,6 +229,8 @@ export function ChatShell({
       {settings && (
         <SettingsPage
           user={user}
+          markdownTheme={markdownTheme}
+          onMarkdownThemeChange={setMarkdownTheme}
           ownMessagesRight={ownMessagesRight}
           onOwnMessagesRightChange={(value) => {
             localStorage.setItem('egent.ownMessagesRight', String(value));

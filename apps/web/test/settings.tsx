@@ -6,6 +6,7 @@ import { SettingsPage } from '../src/components/SettingsPage';
 import { ConversationSidebar } from '../src/components/chat/ConversationSidebar';
 import { Composer } from '../src/components/chat/Composer';
 import { MessageList } from '../src/components/chat/MessageList';
+import { useMarkdownTheme } from '../src/hooks/useMarkdownTheme';
 import '../src/styles.css';
 const initial: UserInfo = { id: 'local', identifier: 'local', name: '测试同事', role: 'OWNER' };
 let visible = false;
@@ -35,6 +36,7 @@ window.fetch = async (input, init) => {
   return Response.json({ error: { message: '测试接口不存在' } }, { status: 404 });
 };
 function Fixture() {
+  const [markdownTheme, setMarkdownTheme] = useMarkdownTheme();
   const [user, setUser] = useState(initial),
     [settings, setSettings] = useState(false),
     [refreshes, setRefreshes] = useState(0),
@@ -65,7 +67,7 @@ function Fixture() {
             </Button>
           </div>
         </aside>
-        <main className="chat-main">
+        <main className="chat-main" data-markdown-theme={markdownTheme}>
           <MessageList
             messages={[
               {
@@ -212,6 +214,8 @@ function Fixture() {
       {settings && (
         <SettingsPage
           user={user}
+          markdownTheme={markdownTheme}
+          onMarkdownThemeChange={setMarkdownTheme}
           ownMessagesRight={ownMessagesRight}
           onOwnMessagesRightChange={(value) => {
             localStorage.setItem('egent.ownMessagesRight', String(value));

@@ -1,0 +1,87 @@
+.markdown-theme-settings > h3 {
+  margin-bottom: 12px;
+  color: #363b33;
+  font-size: 14px;
+  font-weight: 600;
+}
+.markdown-theme-settings .markdown-theme-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(125px, 100%), 1fr));
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+.markdown-theme-options .markdown-theme-choice {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 5px 5px 8px;
+  border: 1px solid #dddeda;
+  border-radius: 9px;
+  background: white;
+  box-shadow: none;
+  color: #50554c;
+}
+.markdown-theme-options .markdown-theme-choice:hover,
+.markdown-theme-options .markdown-theme-choice[data-checked='true'] {
+  border-color: #798b73;
+}
+.markdown-theme-options .markdown-theme-choice[data-checked='true'] {
+  background: #f4f6f0;
+  box-shadow: inset 0 0 0 1px #798b73;
+  color: #31432f;
+}
+.markdown-theme-choice:has(input:focus-visible) {
+  outline: 2px solid #526e4b;
+  outline-offset: 2px;
+}
+.markdown-theme-swatch {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--md-border, #e9e8e3);
+  border-radius: 5px;
+  background: var(--md-surface, white);
+  color: var(--md-heading, #2b2b28);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.markdown-theme-swatch[data-markdown-theme='paper'] {
+  font-family: Georgia, serif;
+}
+.markdown-theme-swatch::after {
+  content: '';
+  width: 25%;
+  max-width: 30px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--md-accent, #758170);
+}
+.markdown-theme-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding-inline: 6px;
+  font-size: 13px;
+}
+.markdown-theme-caption::after {
+  content: '';
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border: 1px solid #a8aea3;
+  border-radius: 50%;
+}
+.markdown-theme-choice[data-checked='true'] .markdown-theme-caption::after {
+  border: 4px solid #526e4b;
+  background: white;
+}
+.markdown-theme-preview[data-markdown-theme='classic'] {
+  padding: 14px 18px;
+  border: 1px solid #e9e8e3;
+  border-radius: 8px;
+}
